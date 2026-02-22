@@ -69,74 +69,73 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                 </button>
             </div>
 
-            {/* Days Header */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', backgroundColor: 'var(--color-background)', borderBottom: '1px solid var(--color-border)' }}>
-                {weekDays.map((d) => (
-                    <div key={d} style={{ padding: '0.75rem', textAlign: 'center', fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-                        {d}
-                    </div>
-                ))}
-            </div>
-
-            {/* Calendar Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', autoRows: 'minmax(100px, auto)' }}>
-                {calendarDays.map((dayItem, index) => {
-                    const dayBookings = getBookingsForDay(dayItem);
-
-                    // Sort bookings to keep consistent order if possible, or just by house
-                    // Let's just map them.
-
-                    return (
-                        <div
-                            key={dayItem.toISOString()}
-                            style={{
-                                borderRight: '1px solid var(--color-border)',
-                                borderBottom: '1px solid var(--color-border)',
-                                padding: '0.5rem',
-                                backgroundColor: !isSameMonth(dayItem, monthStart) ? 'var(--color-background)' : 'white',
-                                opacity: !isSameMonth(dayItem, monthStart) ? 0.5 : 1,
-                                position: 'relative',
-                                minHeight: '100px'
-                            }}
-                            onClick={() => onDateClick(dayItem)}
-                        >
-                            <div style={{ textAlign: 'right', fontSize: '0.875rem', fontWeight: isSameDay(dayItem, new Date()) ? 'bold' : 'normal', color: isSameDay(dayItem, new Date()) ? 'var(--color-primary)' : 'inherit' }}>
-                                {format(dayItem, dateFormat)}
-                            </div>
-
-                            <div style={{ marginTop: '0.25rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                {dayBookings.map(booking => {
-                                    const house = HOUSES.find(h => h.id === booking.houseId);
-                                    const color = house ? (house.id === 'gredos' ? 'var(--color-primary)' : 'var(--color-secondary)') : 'gray';
-                                    return (
-                                        <div
-                                            key={booking.id}
-                                            style={{
-                                                fontSize: '0.7rem',
-                                                backgroundColor: color,
-                                                color: 'white',
-                                                padding: '2px 4px',
-                                                borderRadius: '4px',
-                                                whiteSpace: 'nowrap',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                cursor: 'pointer',
-                                                opacity: 0.9
-                                            }}
-                                            title={`${house?.name} - ${booking.guestName}`}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onBookingClick && onBookingClick(booking);
-                                            }}
-                                        >
-                                            {booking.guestName}
-                                        </div>
-                                    );
-                                })}
-                            </div>
+            {/* Calendar Grid - Mobile Scroll Support */}
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', minWidth: '700px', backgroundColor: 'var(--color-background)', borderBottom: '1px solid var(--color-border)' }}>
+                    {weekDays.map((d) => (
+                        <div key={d} style={{ padding: '0.75rem', textAlign: 'center', fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+                            {d}
                         </div>
-                    );
-                })}
+                    ))}
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', minWidth: '700px', autoRows: 'minmax(80px, auto)' }}>
+                    {calendarDays.map((dayItem, index) => {
+                        const dayBookings = getBookingsForDay(dayItem);
+
+                        return (
+                            <div
+                                key={dayItem.toISOString()}
+                                style={{
+                                    borderRight: '1px solid var(--color-border)',
+                                    borderBottom: '1px solid var(--color-border)',
+                                    padding: '0.25rem',
+                                    backgroundColor: !isSameMonth(dayItem, monthStart) ? 'var(--color-background)' : 'white',
+                                    opacity: !isSameMonth(dayItem, monthStart) ? 0.5 : 1,
+                                    position: 'relative',
+                                    minHeight: '80px'
+                                }}
+                                onClick={() => onDateClick(dayItem)}
+                            >
+                                <div style={{ textAlign: 'right', fontSize: '0.75rem', fontWeight: isSameDay(dayItem, new Date()) ? 'bold' : 'normal', color: isSameDay(dayItem, new Date()) ? 'var(--color-primary)' : 'inherit' }}>
+                                    {format(dayItem, dateFormat)}
+                                </div>
+
+                                <div style={{ marginTop: '0.15rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    {dayBookings.map(booking => {
+                                        const house = HOUSES.find(h => h.id === booking.houseId);
+                                        const color = house ? (house.id === 'gredos' ? 'var(--color-primary)' : 'var(--color-secondary)') : 'gray';
+                                        return (
+                                            <div
+                                                key={booking.id}
+                                                style={{
+                                                    fontSize: '0.65rem',
+                                                    backgroundColor: color,
+                                                    color: 'white',
+                                                    padding: '1px 3px',
+                                                    borderRadius: '3px',
+                                                    whiteSpace: 'nowrap',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    cursor: 'pointer',
+                                                    opacity: 0.9,
+                                                    lineHeight: '1.2'
+                                                }}
+                                                title={`${house?.name} - ${booking.guestName}`}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onBookingClick && onBookingClick(booking);
+                                                }}
+                                            >
+                                                {booking.guestName}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );

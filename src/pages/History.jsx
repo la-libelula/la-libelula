@@ -95,10 +95,10 @@ const History = () => {
 
     return (
         <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h2>Histórico de Reservas</h2>
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                    <div style={{ width: '120px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <h2 style={{ margin: 0 }}>Histórico de Reservas</h2>
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', width: '100%', justifyContent: 'flex-start', maxWidth: '600px' }}>
+                    <div style={{ flex: '1 1 100px' }}>
                         <Select
                             label="Año"
                             value={selectedYear}
@@ -109,7 +109,7 @@ const History = () => {
                             ]}
                         />
                     </div>
-                    <div style={{ width: '180px' }}>
+                    <div style={{ flex: '1 1 150px' }}>
                         <Select
                             label="Casa"
                             value={selectedHouse}
@@ -120,7 +120,7 @@ const History = () => {
                             ]}
                         />
                     </div>
-                    <div style={{ width: '180px' }}>
+                    <div style={{ flex: '1 1 150px' }}>
                         <Select
                             label="Canal"
                             value={selectedChannel}

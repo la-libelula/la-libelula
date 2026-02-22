@@ -37,7 +37,25 @@
   /* Typography */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-serif: 'Playfair Display', 'Merriweather', serif;
-  /* Elegant serif for headings */
+
+  /* Responsive Scaling */
+  --sidebar-width: 250px;
+  --main-padding: 2rem;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 0px;
+    --main-padding: 1rem;
+  }
+
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  h2 {
+    font-size: 1.25rem !important;
+  }
 }
 
 * {

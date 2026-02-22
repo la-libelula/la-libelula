@@ -121,7 +121,7 @@ const Dashboard = () => {
                 />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
                 <Card title="Próximas Reservas">
                     {(bookings || [])
                         .filter(b => b.checkIn && parseDateHelper(b.checkIn) >= new Date())

@@ -71,14 +71,14 @@ const Expenses = () => {
 
     return (
         <div style={{ position: 'relative' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h2>Gastos</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <h2 style={{ margin: 0 }}>Gastos</h2>
                 <Button onClick={() => setIsFormOpen(true)} icon={Plus}>
                     Nuevo Gasto
                 </Button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1.5rem', alignItems: 'flex-end' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '1.5rem', alignItems: 'flex-end' }}>
                 <Select
                     label="Año"
                     value={selectedYear}
@@ -106,7 +106,7 @@ const Expenses = () => {
                         ...EXPENSE_CATEGORIES.map(c => ({ value: c.id, label: c.name }))
                     ]}
                 />
-                <div style={{ minWidth: '200px' }}>
+                <div style={{ minWidth: '100%', gridColumn: '1 / -1' }}>
                     <Card style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', border: '1px solid var(--color-border)', backgroundColor: '#fff9f0' }}>
                         <div style={{ backgroundColor: 'rgba(139, 69, 19, 0.1)', color: '#8b4513', padding: '0.5rem', borderRadius: '8px' }}>
                             <ReceiptEuro size={20} />
