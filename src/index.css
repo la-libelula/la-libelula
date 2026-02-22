@@ -41,12 +41,16 @@
   /* Responsive Scaling */
   --sidebar-width: 250px;
   --main-padding: 2rem;
+  --calendar-min-width: 700px;
+  --calendar-font-size: 0.75rem;
+  --calendar-booking-font: 0.65rem;
 }
 
 @media (max-width: 768px) {
   :root {
     --sidebar-width: 0px;
     --main-padding: 1rem;
+    --calendar-min-width: 500px;
   }
 
   h1 {
@@ -58,7 +62,15 @@
   }
 }
 
-* {
+@media (max-width: 500px) {
+  :root {
+    --calendar-min-width: 100%;
+    --calendar-font-size: 0.65rem;
+    --calendar-booking-font: 0.55rem;
+  }
+}
+
+village * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;

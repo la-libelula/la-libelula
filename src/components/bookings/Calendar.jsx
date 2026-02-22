@@ -71,15 +71,15 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
 
             {/* Calendar Grid - Mobile Scroll Support */}
             <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', minWidth: '700px', backgroundColor: 'var(--color-background)', borderBottom: '1px solid var(--color-border)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', minWidth: 'var(--calendar-min-width)', backgroundColor: 'var(--color-background)', borderBottom: '1px solid var(--color-border)' }}>
                     {weekDays.map((d) => (
-                        <div key={d} style={{ padding: '0.75rem', textAlign: 'center', fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+                        <div key={d} style={{ padding: '0.75rem 0.25rem', textAlign: 'center', fontWeight: 600, fontSize: 'var(--calendar-font-size)', color: 'var(--color-text-muted)' }}>
                             {d}
                         </div>
                     ))}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', minWidth: '700px', autoRows: 'minmax(80px, auto)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', minWidth: 'var(--calendar-min-width)', autoRows: 'minmax(70px, auto)' }}>
                     {calendarDays.map((dayItem, index) => {
                         const dayBookings = getBookingsForDay(dayItem);
 
@@ -89,19 +89,19 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                 style={{
                                     borderRight: '1px solid var(--color-border)',
                                     borderBottom: '1px solid var(--color-border)',
-                                    padding: '0.25rem',
+                                    padding: '0.15rem',
                                     backgroundColor: !isSameMonth(dayItem, monthStart) ? 'var(--color-background)' : 'white',
                                     opacity: !isSameMonth(dayItem, monthStart) ? 0.5 : 1,
                                     position: 'relative',
-                                    minHeight: '80px'
+                                    minHeight: '70px'
                                 }}
                                 onClick={() => onDateClick(dayItem)}
                             >
-                                <div style={{ textAlign: 'right', fontSize: '0.75rem', fontWeight: isSameDay(dayItem, new Date()) ? 'bold' : 'normal', color: isSameDay(dayItem, new Date()) ? 'var(--color-primary)' : 'inherit' }}>
+                                <div style={{ textAlign: 'right', fontSize: 'var(--calendar-font-size)', fontWeight: isSameDay(dayItem, new Date()) ? 'bold' : 'normal', color: isSameDay(dayItem, new Date()) ? 'var(--color-primary)' : 'inherit' }}>
                                     {format(dayItem, dateFormat)}
                                 </div>
 
-                                <div style={{ marginTop: '0.15rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                <div style={{ marginTop: '0.1rem', display: 'flex', flexDirection: 'column', gap: '1px' }}>
                                     {dayBookings.map(booking => {
                                         const house = HOUSES.find(h => h.id === booking.houseId);
                                         const color = house ? (house.id === 'gredos' ? 'var(--color-primary)' : 'var(--color-secondary)') : 'gray';
@@ -109,17 +109,17 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                             <div
                                                 key={booking.id}
                                                 style={{
-                                                    fontSize: '0.65rem',
+                                                    fontSize: 'var(--calendar-booking-font)',
                                                     backgroundColor: color,
                                                     color: 'white',
-                                                    padding: '1px 3px',
-                                                    borderRadius: '3px',
+                                                    padding: '1px 2px',
+                                                    borderRadius: '2px',
                                                     whiteSpace: 'nowrap',
                                                     overflow: 'hidden',
                                                     textOverflow: 'ellipsis',
                                                     cursor: 'pointer',
                                                     opacity: 0.9,
-                                                    lineHeight: '1.2'
+                                                    lineHeight: '1.1'
                                                 }}
                                                 title={`${house?.name} - ${booking.guestName}`}
                                                 onClick={(e) => {

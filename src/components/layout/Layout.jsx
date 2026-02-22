@@ -61,7 +61,8 @@ const Layout = () => {
                         overflowY: 'auto',
                         transition: 'transform 0.3s ease',
                         transform: isMobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)',
-                        boxShadow: isMobileMenuOpen ? 'var(--shadow-lg)' : 'none'
+                        boxShadow: isMobileMenuOpen ? 'var(--shadow-lg)' : 'none',
+                        paddingBottom: '80px' // Clearance for mobile bars
                     }}
                     className="sidebar"
                 >
