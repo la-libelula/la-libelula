@@ -117,18 +117,15 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                         return (
                                             <div
                                                 key={booking.id}
+                                                className="calendar-guest-name"
                                                 style={{
                                                     fontSize: 'var(--calendar-booking-font)',
                                                     backgroundColor: color,
                                                     color: 'white',
                                                     padding: '1px',
                                                     borderRadius: '1px',
-                                                    whiteSpace: 'normal',
                                                     overflow: 'hidden',
                                                     textOverflow: 'ellipsis',
-                                                    display: '-webkit-box',
-                                                    WebkitLineClamp: 2,
-                                                    WebkitBoxOrient: 'vertical',
                                                     cursor: 'pointer',
                                                     opacity: 0.95,
                                                     lineHeight: '1',
@@ -149,17 +146,9 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                         );
                     })}
                 </div>
-                <style>{`
-                .day-label-mobile { display: none; }
-                .day-label-desktop { display: inline; }
-                
-                @media (max-width: 600px) {
-                    .day-label-mobile { display: inline; }
-                    .day-label-desktop { display: none; }
-                }
-            `}</style>
             </div>
-            );
+        </div>
+    );
 };
 
-            export default Calendar;
+export default Calendar;
