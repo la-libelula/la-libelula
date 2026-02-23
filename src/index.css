@@ -67,16 +67,17 @@
     --calendar-min-width: 100%;
     --calendar-font-size: 0.65rem;
     --calendar-booking-font: 0.55rem;
+    --main-padding: 0.5rem;
   }
 }
 
-village * {
+* {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-body {
+village body {
   font-family: var(--font-sans);
   background-color: var(--color-background);
   color: var(--color-text);

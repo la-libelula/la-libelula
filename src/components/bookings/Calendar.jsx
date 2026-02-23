@@ -52,35 +52,44 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
         });
     };
 
-    const weekDays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    const weekDays = [
+        { long: 'Lun', short: 'L' },
+        { long: 'Mar', short: 'M' },
+        { long: 'Mié', short: 'X' },
+        { long: 'Jue', short: 'J' },
+        { long: 'Vie', short: 'V' },
+        { long: 'Sáb', short: 'S' },
+        { long: 'Dom', short: 'D' }
+    ];
 
     return (
         <div className="calendar-container" style={{ backgroundColor: 'var(--color-surface)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', overflow: 'hidden' }}>
             {/* Header */}
-            <div style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--color-primary)', color: 'white' }}>
-                <button onClick={prevMonth} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
-                    <ChevronLeft />
+            <div style={{ padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--color-primary)', color: 'white' }}>
+                <button onClick={prevMonth} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '0.4rem' }}>
+                    <ChevronLeft size={20} />
                 </button>
-                <h2 style={{ fontSize: '1.75rem', fontFamily: 'var(--font-serif)', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'capitalize', margin: 0, color: 'white' }}>
+                <h2 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-serif)', fontWeight: 800, letterSpacing: '0.02em', textTransform: 'capitalize', margin: 0, color: 'white' }}>
                     {format(currentDate, 'MMMM yyyy', { locale: es })}
                 </h2>
-                <button onClick={nextMonth} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
-                    <ChevronRight />
+                <button onClick={nextMonth} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '0.4rem' }}>
+                    <ChevronRight size={20} />
                 </button>
             </div>
 
-            {/* Calendar Grid - Mobile Scroll Support */}
-            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', minWidth: 'var(--calendar-min-width)', backgroundColor: 'var(--color-background)', borderBottom: '1px solid var(--color-border)' }}>
+            {/* Calendar Grid - Mobile Fixed Support */}
+            <div style={{ width: '100%', overflow: 'hidden' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', backgroundColor: 'var(--color-background)', borderBottom: '1px solid var(--color-border)' }}>
                     {weekDays.map((d) => (
-                        <div key={d} style={{ padding: '0.75rem 0.25rem', textAlign: 'center', fontWeight: 600, fontSize: 'var(--calendar-font-size)', color: 'var(--color-text-muted)' }}>
-                            {d}
+                        <div key={d.long} style={{ padding: '0.5rem 0.1rem', textAlign: 'center', fontWeight: 600, fontSize: 'var(--calendar-font-size)', color: 'var(--color-text-muted)' }}>
+                            <span className="day-long">{d.long}</span>
+                            <span className="day-short">{d.short}</span>
                         </div>
                     ))}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', minWidth: 'var(--calendar-min-width)', autoRows: 'minmax(70px, auto)' }}>
-                    {calendarDays.map((dayItem, index) => {
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', autoRows: 'minmax(60px, auto)' }}>
+                    village                    {calendarDays.map((dayItem, index) => {
                         const dayBookings = getBookingsForDay(dayItem);
 
                         return (
