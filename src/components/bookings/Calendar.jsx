@@ -81,15 +81,15 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
             <div style={{ width: '100%', overflow: 'hidden' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', backgroundColor: 'var(--color-background)', borderBottom: '1px solid var(--color-border)' }}>
                     {weekDays.map((d) => (
-                        <div key={d.long} style={{ padding: '0.5rem 0.1rem', textAlign: 'center', fontWeight: 600, fontSize: 'var(--calendar-font-size)', color: 'var(--color-text-muted)' }}>
-                            <span className="day-long">{d.long}</span>
-                            <span className="day-short">{d.short}</span>
+                        <div key={d.long} style={{ padding: '0.4rem 0.1rem', textAlign: 'center', fontWeight: 600, fontSize: 'var(--calendar-font-size)', color: 'var(--color-text-muted)' }}>
+                            <span className="day-label-desktop">{d.long}</span>
+                            <span className="day-label-mobile">{d.short}</span>
                         </div>
                     ))}
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', autoRows: 'minmax(60px, auto)' }}>
-                    village                    {calendarDays.map((dayItem, index) => {
+                    {calendarDays.map((dayItem, index) => {
                         const dayBookings = getBookingsForDay(dayItem);
 
                         return (
@@ -110,7 +110,7 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                     {format(dayItem, dateFormat)}
                                 </div>
 
-                                <div style={{ marginTop: '0.1rem', display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                                <div style={{ marginTop: '0.05rem', display: 'flex', flexDirection: 'column', gap: '1px' }}>
                                     {dayBookings.map(booking => {
                                         const house = HOUSES.find(h => h.id === booking.houseId);
                                         const color = house ? (house.id === 'gredos' ? 'var(--color-primary)' : 'var(--color-secondary)') : 'gray';
@@ -121,14 +121,18 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                     fontSize: 'var(--calendar-booking-font)',
                                                     backgroundColor: color,
                                                     color: 'white',
-                                                    padding: '1px 2px',
-                                                    borderRadius: '2px',
-                                                    whiteSpace: 'nowrap',
+                                                    padding: '1px',
+                                                    borderRadius: '1px',
+                                                    whiteSpace: 'normal',
                                                     overflow: 'hidden',
                                                     textOverflow: 'ellipsis',
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 2,
+                                                    WebkitBoxOrient: 'vertical',
                                                     cursor: 'pointer',
-                                                    opacity: 0.9,
-                                                    lineHeight: '1.1'
+                                                    opacity: 0.95,
+                                                    lineHeight: '1',
+                                                    maxHeight: '22px'
                                                 }}
                                                 title={`${house?.name} - ${booking.guestName}`}
                                                 onClick={(e) => {
@@ -145,9 +149,17 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                         );
                     })}
                 </div>
+                <style>{`
+                .day-label-mobile { display: none; }
+                .day-label-desktop { display: inline; }
+                
+                @media (max-width: 600px) {
+                    .day-label-mobile { display: inline; }
+                    .day-label-desktop { display: none; }
+                }
+            `}</style>
             </div>
-        </div>
-    );
+            );
 };
 
-export default Calendar;
+            export default Calendar;
