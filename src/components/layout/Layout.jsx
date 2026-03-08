@@ -13,7 +13,6 @@ const Layout = () => {
         { to: '/expenses', icon: ReceiptEuro, label: 'Gastos' },
         { to: '/stats', icon: BarChart3, label: 'Estadísticas' },
         { to: '/history', icon: Clock, label: 'Histórico' },
-        { to: '/settings', icon: ShieldCheck, label: 'Configuración' },
     ];
 
     const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
