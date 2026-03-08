@@ -191,7 +191,6 @@ export const AppProvider = ({ children }) => {
                 addExpense,
                 updateExpense,
                 deleteExpense,
-                deleteExpense,
                 getHouseBookings,
                 houses: HOUSES,
                 channels: CHANNELS

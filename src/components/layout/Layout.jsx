@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { LayoutDashboard, CalendarDays, ReceiptEuro, BarChart3, Home, Clock, Menu, X as CloseIcon, LogOut, User, ShieldCheck } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 const Layout = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
