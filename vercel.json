@@ -1,6 +1,10 @@
 {
     "rewrites": [
         {
+            "source": "/reseteo.html",
+            "destination": "/reseteo.html"
+        },
+        {
             "source": "/clear.html",
             "destination": "/clear.html"
         },

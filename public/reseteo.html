@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reseteo La Libélula</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #00ff00;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .log-container {
+            background: #000;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto;
+            min-height: 200px;
+        }
+
+        .success {
+            color: #fff;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .error {
+            color: #ff5555;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            color: #fff;
+            text-align: center;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>CONSOLA DE RESETEO EXTERNO</h1>
+    <div class="log-container" id="log">
+        <div>[0] Iniciando sistema de diagnóstico...</div>
+    </div>
+
+    <button class="btn" onclick="startReset()">PULSAR AQUÍ PARA LIMPIAR</button>
+
+    <script>
+        var logEl = document.getElementById('log');
+        function print(msg, isError) {
+            var div = document.createElement('div');
+            div.className = isError ? 'error' : '';
+            div.innerText = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+            logEl.appendChild(div);
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        function startReset() {
+            print("Iniciando purga nuclear...");
+
+            // 1. Limpiar Service Workers
+            if ('serviceWorker' in navigator) {
+                print("Buscando Service Workers registrados...");
+                navigator.serviceWorker.getRegistrations().then(function (regs) {
+                    if (regs.length === 0) {
+                        print("No se encontraron Service Workers.");
+                    } else {
+                        print("Encontrados: " + regs.length);
+                        regs.forEach(function (reg) {
+                            reg.unregister().then(function (ok) {
+                                print("Desinstalado: " + (ok ? "ÉXITO" : "FALLO"));
+                            });
+                        });
+                    }
+                }).catch(function (e) { print("Error SW: " + e.message, true); });
+            } else {
+                print("Tu navegador no soporta Service Workers.");
+            }
+
+            // 2. Limpiar Caches
+            if ('caches' in window) {
+                print("Borrando Caches del navegador...");
+                caches.keys().then(function (names) {
+                    if (names.length === 0) {
+                        print("Cache ya está vacío.");
+                    } else {
+                        names.forEach(function (name) {
+                            caches.delete(name).then(function (ok) {
+                                print("Cache '" + name + "' borrado: " + (ok ? "SÍ" : "NO"));
+                            });
+                        });
+                    }
+                }).catch(function (e) { print("Error Cache: " + e.message, true); });
+            }
+
+            // 3. Limpiar ALMACENAMIENTO
+            print("Limpiando almacenamiento local...");
+            try {
+                localStorage.clear();
+                sessionStorage.clear();
+                print("Datos locales borrados.");
+            } catch (e) { print("Error Almacenamiento: " + e.message, true); }
+
+            print("SISTEMA LIMPIADO COMPLETAMENTE", false);
+            print("Haz click aquí abajo para volver:", false);
+
+            var backBtn = document.createElement('button');
+            backBtn.className = 'btn';
+            backBtn.style.background = '#10b981';
+            backBtn.innerText = 'VOLVER A LA APP (Limpio)';
+            backBtn.onclick = function () { window.location.href = '/?reset_done=' + Date.now(); };
+            document.body.appendChild(backBtn);
+        }
+
+        print("Esperando acción del usuario...");
+    </script>
+</body>
+
+</html>
