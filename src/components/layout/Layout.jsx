@@ -58,12 +58,29 @@ const Layout = () => {
                         <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--color-accent)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Gestión Rural</span>
                     </div>
                 </div>
-                <button
-                    onClick={toggleMobileMenu}
-                    style={{ background: 'none', border: 'none', color: 'var(--color-primary)', display: 'flex', alignItems: 'center' }}
-                >
-                    {isMobileMenuOpen ? <CloseIcon size={24} /> : <Menu size={24} />}
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <button
+                        onClick={() => signOut()}
+                        style={{
+                            background: 'rgba(239, 68, 68, 0.08)',
+                            border: 'none',
+                            color: '#ef4444',
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '0.5rem',
+                            borderRadius: '8px'
+                        }}
+                        title="Cerrar Sesión"
+                    >
+                        <LogOut size={20} />
+                    </button>
+                    <button
+                        onClick={toggleMobileMenu}
+                        style={{ background: 'none', border: 'none', color: 'var(--color-primary)', display: 'flex', alignItems: 'center' }}
+                    >
+                        {isMobileMenuOpen ? <CloseIcon size={24} /> : <Menu size={24} />}
+                    </button>
+                </div>
             </header>
 
             <div style={{ display: 'flex', flex: 1, position: 'relative' }}>

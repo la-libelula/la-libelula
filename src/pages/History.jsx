@@ -46,7 +46,7 @@ const History = () => {
         const matchesChannel = selectedChannel === 'all' || b.channelId === selectedChannel;
         const matchesYear = selectedYear === 'all' || checkInDate.getFullYear().toString() === selectedYear;
         return matchesHouse && matchesChannel && matchesYear;
-    }).sort((a, b) => new Date(b.checkIn) - new Date(a.checkIn));
+    }).sort((a, b) => new Date(a.checkIn) - new Date(b.checkIn));
 
     const totalDays = filteredBookings.reduce((sum, b) => {
         return sum + differenceInDays(parseISO(b.checkOut), parseISO(b.checkIn));
