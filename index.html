@@ -15,15 +15,32 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="La Libélula" />
-  <link rel="apple-touch-icon" href="/libelula-v17.png?v=17" />
-  <link rel="manifest" href="/config-v17.json?v=17" />
+  <link rel="apple-touch-icon" href="/libelula-v17.png?v=18" />
+  <link rel="manifest" href="/config-v17.json?v=18" />
   <script>
+    // NUCLEAR AUTO-RESET v18
+    const CURRENT_VERSION = "18";
+    if (localStorage.getItem("libelula_version") !== CURRENT_VERSION) {
+      console.log("Forcing Nuclear Reset to v18...");
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          for (let reg of regs) reg.unregister();
+        });
+      }
+      if ('caches' in window) {
+        caches.keys().then(names => {
+          for (let name of names) caches.delete(name);
+        });
+      }
+      localStorage.setItem("libelula_version", CURRENT_VERSION);
+      setTimeout(() => { window.location.reload(true); }, 500);
+    }
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/worker-v17.js?v=17')
+        navigator.serviceWorker.register('/worker-v17.js?v=18')
           .then(reg => {
-            console.log('SW Registered v17:', reg);
-            reg.update(); // Force update check
+            console.log('SW Registered v18:', reg);
           })
           .catch(err => console.error('SW Failed:', err));
       });

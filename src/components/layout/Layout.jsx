@@ -165,6 +165,7 @@ const Layout = () => {
 
                     <div style={{ padding: '1rem', color: 'var(--color-text-muted)', fontSize: '0.75rem', textAlign: 'center', borderTop: '1px solid var(--color-border)' }}>
                         <p>© 2026 La Libélula</p>
+                        <p style={{ fontSize: '0.6rem', opacity: 0.5 }}>Versión v18</p>
                     </div>
                 </aside>
 
@@ -282,7 +283,10 @@ const Layout = () => {
                             <HelpCircle size={18} />
                             Ayuda y Tutorial
                         </button>
-                        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', textAlign: 'center', marginTop: '0.5rem' }}>© 2026 La Libélula</p>
+                        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', textAlign: 'center', marginTop: '0.5rem' }}>
+                            © 2026 La Libélula<br />
+                            <span style={{ fontSize: '0.6rem', opacity: 0.5 }}>Versión v18</span>
+                        </p>
                     </div>
                 </aside>
 
