@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { AppProvider } from './context/AppContext.jsx'
+import { AuthProvider } from './context/AuthContext.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import './index.css'
 import App from './App.jsx'
@@ -23,9 +24,11 @@ try {
     <StrictMode>
       <ErrorBoundary>
         <BrowserRouter>
-          <AppProvider>
-            <App />
-          </AppProvider>
+          <AuthProvider>
+            <AppProvider>
+              <App />
+            </AppProvider>
+          </AuthProvider>
         </BrowserRouter>
       </ErrorBoundary>
     </StrictMode>

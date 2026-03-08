@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { HOUSES, CHANNELS } from '../utils/constants';
 
 const AppContext = createContext();
 
@@ -190,7 +191,10 @@ export const AppProvider = ({ children }) => {
                 addExpense,
                 updateExpense,
                 deleteExpense,
-                getHouseBookings
+                deleteExpense,
+                getHouseBookings,
+                houses: HOUSES,
+                channels: CHANNELS
             }}
         >
             {children}
