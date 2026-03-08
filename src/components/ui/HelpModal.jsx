@@ -1,8 +1,33 @@
 import React, { useState } from 'react';
-import { X, ChevronRight, ChevronLeft, HelpCircle, LayoutDashboard, Calendar, ReceiptEuro, BarChart3, Clock } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, HelpCircle, LayoutDashboard, Calendar, ReceiptEuro, BarChart3, Clock, RefreshCcw } from 'lucide-react';
 
 const HelpModal = ({ isOpen, onClose }) => {
     const [step, setStep] = useState(0);
+
+    const handleNuclearReset = async () => {
+        if (window.confirm("¿Quieres realizar una limpieza profunda? Se borrará el icono de la 'V' y se actualizará la app. La página se recargará.")) {
+            try {
+                // 1. Unregister all service workers
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let registration of registrations) {
+                    await registration.unregister();
+                }
+
+                // 2. Clear all caches
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+
+                // 3. Clear local storage / session storage (optional but safe)
+                // localStorage.clear(); 
+
+                alert("Limpieza completada. La aplicación se cerrará y se recargará con el icono nuevo.");
+                window.location.href = window.location.origin + '/?v17_reset=' + Date.now();
+            } catch (err) {
+                console.error("Reset failed:", err);
+                alert("Error al limpiar: " + err.message);
+            }
+        }
+    };
 
     const tutorialSteps = [
         {
@@ -40,6 +65,13 @@ const HelpModal = ({ isOpen, onClose }) => {
             content: "Todas tus reservas pasadas ordenadas por meses (de Enero a Diciembre). Ideal para consultar datos de clientes de temporadas anteriores.",
             icon: Clock,
             color: "var(--color-secondary)"
+        },
+        {
+            title: "¿Ves el icono de la 'V'?",
+            content: "Si sigues viendo una 'V' en lugar de la libélula, pulsa el botón de abajo para hacer una limpieza profunda. Esto solucionará los problemas de instalación.",
+            icon: RefreshCcw,
+            color: "#6366f1",
+            isResetStep: true
         }
     ];
 
@@ -106,9 +138,30 @@ const HelpModal = ({ isOpen, onClose }) => {
                     </div>
 
                     <h3 style={{ fontSize: '1.4rem', marginBottom: '1rem', color: '#1a1a1a' }}>{currentStep.title}</h3>
-                    <p style={{ lineHeight: '1.6', color: '#666', fontSize: '1.05rem', margin: 0 }}>
+                    <p style={{ lineHeight: '1.6', color: '#666', fontSize: '1.05rem', marginBottom: currentStep.isResetStep ? '1.5rem' : 0 }}>
                         {currentStep.content}
                     </p>
+
+                    {currentStep.isResetStep && (
+                        <button
+                            onClick={handleNuclearReset}
+                            style={{
+                                backgroundColor: '#ef4444',
+                                color: 'white',
+                                border: 'none',
+                                padding: '12px 24px',
+                                borderRadius: '12px',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                margin: '0 auto'
+                            }}
+                        >
+                            <RefreshCcw size={18} /> Limpieza Profunda
+                        </button>
+                    )}
                 </div>
 
                 {/* Footer / Navigation */}

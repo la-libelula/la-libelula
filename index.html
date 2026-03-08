@@ -3,25 +3,28 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="icon" type="image/png" href="/favicon.png?v=17" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>La Libélula - Gestión Rural</title>
+  <title>La Libélula - Gestión</title>
   <meta name="theme-color" content="#1e3a24" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="La Libélula" />
-  <link rel="apple-touch-icon" href="/pwa-v15.png?v=16" />
-  <link rel="manifest" href="/manifest-v15.json?v=16" />
+  <link rel="apple-touch-icon" href="/libelula-v17.png?v=17" />
+  <link rel="manifest" href="/config-v17.json?v=17" />
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw-v15.js?v=16')
-          .then(reg => console.log('SW Registered (v16):', reg))
+        navigator.serviceWorker.register('/worker-v17.js?v=17')
+          .then(reg => {
+            console.log('SW Registered v17:', reg);
+            reg.update(); // Force update check
+          })
           .catch(err => console.error('SW Failed:', err));
       });
     }
