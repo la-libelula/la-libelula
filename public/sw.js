@@ -1,4 +1,4 @@
-const CACHE_NAME = 'la-libelula-v4-direct-access';
+const CACHE_NAME = 'la-libelula-v5-icon-restore';
 const ASSETS = [
     '/',
     '/index.html',
