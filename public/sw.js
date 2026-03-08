@@ -1,11 +1,14 @@
-const CACHE_NAME = 'la-libelula-v6-icon-split';
+const CACHE_NAME = 'la-libelula-v7-perfect-icons';
 const ASSETS = [
     '/',
     '/index.html',
     '/manifest.json',
     '/favicon.ico',
+    '/favicon.png',
     '/logo192.png',
-    '/logo512.png'
+    '/logo512.png',
+    '/logo_premium.png',
+    '/logo_launcher.png'
 ];
 
 self.addEventListener('install', (event) => {
