@@ -1,7 +1,7 @@
 {
-    "short_name": "La Libélula",
-    "name": "Gestión Rural La Libélula",
-    "id": "/pwa-v15",
+    "short_name": "Libélula App",
+    "name": "La Libélula - Gestión Rural",
+    "id": "/libelula-app-v16",
     "icons": [
         {
             "src": "favicon.png",

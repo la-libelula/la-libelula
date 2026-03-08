@@ -9,13 +9,6 @@ import App from './App.jsx'
 
 console.log("main.jsx: Definined imports");
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw-v15.js')
-      .then(reg => console.log('SW v15 registered:', reg))
-      .catch(err => console.error('SW registration failed:', err));
-  });
-}
 
 try {
   const rootElement = document.getElementById('root');

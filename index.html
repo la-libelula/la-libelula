@@ -15,8 +15,17 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="La Libélula" />
-  <link rel="apple-touch-icon" href="/pwa-v15.png" />
-  <link rel="manifest" href="/manifest-v15.json" />
+  <link rel="apple-touch-icon" href="/pwa-v15.png?v=16" />
+  <link rel="manifest" href="/manifest-v15.json?v=16" />
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw-v15.js?v=16')
+          .then(reg => console.log('SW Registered (v16):', reg))
+          .catch(err => console.error('SW Failed:', err));
+      });
+    }
+  </script>
 </head>
 
 <body>
