@@ -134,30 +134,8 @@ const Layout = () => {
                         ))}
                     </nav>
 
-                    <div style={{ padding: '1rem', borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem', fontSize: '0.85rem', color: 'var(--color-text)' }}>
-                            <User size={16} />
-                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email}</span>
-                        </div>
-                        <button
-                            onClick={() => signOut()}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.75rem',
-                                padding: '0.75rem 1rem',
-                                border: 'none',
-                                background: 'rgba(239, 68, 68, 0.05)',
-                                color: '#ef4444',
-                                borderRadius: 'var(--radius-md)',
-                                cursor: 'pointer',
-                                fontWeight: 600,
-                                width: '100%'
-                            }}
-                        >
-                            <LogOut size={18} />
-                            Cerrar Sesión
-                        </button>
+                    <div style={{ padding: '2rem 1rem', color: 'var(--color-text-muted)', fontSize: '0.75rem', textAlign: 'center', borderTop: '1px solid var(--color-border)' }}>
+                        <p>© 2026 La Libélula</p>
                     </div>
                     <div style={{ padding: '1rem', color: 'var(--color-text-muted)', fontSize: '0.7rem', textAlign: 'center' }}>
                         <p>© 2026 La Libélula</p>
@@ -257,31 +235,8 @@ const Layout = () => {
                         ))}
                     </nav>
 
-                    <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem', fontSize: '0.85rem', color: 'var(--color-text)' }}>
-                            <User size={18} />
-                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email}</span>
-                        </div>
-                        <button
-                            onClick={() => signOut()}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.75rem',
-                                padding: '0.75rem 1rem',
-                                border: 'none',
-                                background: 'rgba(239, 68, 68, 0.05)',
-                                color: '#ef4444',
-                                borderRadius: 'var(--radius-md)',
-                                cursor: 'pointer',
-                                fontWeight: 600,
-                                width: '100%'
-                            }}
-                        >
-                            <LogOut size={18} />
-                            Cerrar Sesión
-                        </button>
-                        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', textAlign: 'center', marginTop: '0.5rem' }}>© 2026 v1.0</p>
+                    <div style={{ padding: '2rem 1.5rem', borderTop: '1px solid var(--color-border)', color: 'var(--color-text-muted)', fontSize: '0.75rem', textAlign: 'center' }}>
+                        <p>© 2026 La Libélula</p>
                     </div>
                 </aside>
 
