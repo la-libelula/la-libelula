@@ -1,4 +1,4 @@
-const CACHE_NAME = 'la-libelula-v5-icon-restore';
+const CACHE_NAME = 'la-libelula-v6-icon-split';
 const ASSETS = [
     '/',
     '/index.html',

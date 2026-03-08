@@ -43,7 +43,7 @@ const Layout = () => {
                         color: 'white',
                         boxShadow: '0 4px 12px rgba(30, 58, 36, 0.15)'
                     }}>
-                        <img src="/logo192.png" alt="La Libélula" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+                        <img src="/logo_premium.png" alt="La Libélula" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
                     </div>
                     <div>
                         <span style={{
@@ -177,7 +177,7 @@ const Layout = () => {
                             color: 'white',
                             boxShadow: 'var(--shadow-lg)'
                         }}>
-                            <img src="/logo192.png" alt="La Libélula" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+                            <img src="/logo_premium.png" alt="La Libélula" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
                         </div>
                         <div style={{ textAlign: 'center' }}>
                             <h1 style={{
