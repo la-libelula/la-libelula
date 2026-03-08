@@ -47,7 +47,27 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
             if (!b.checkIn || !b.checkOut) return false;
             const start = parseISO(b.checkIn);
             const end = parseISO(b.checkOut);
-            return isWithinInterval(day, { start, end }) || isSameDay(day, start) || isSameDay(day, end);
+
+            // Una reserva ocupa las noches entre el checkIn y el checkOut.
+            // La última "noche" es el día anterior al checkOut.
+            // Por tanto, mostramos la barra desde el día de checkIn hasta el día ANTERIOR al checkOut.
+            return (isWithinInterval(day, { start, end }) || isSameDay(day, start)) && !isSameDay(day, end);
+        }).map(booking => {
+            const start = parseISO(booking.checkIn);
+            const end = parseISO(booking.checkOut);
+            const isStart = isSameDay(day, start);
+
+            // Calculamos el día anterior al checkOut para saber si es el "final" visual de la barra de noches
+            const lastNight = new Date(end);
+            lastNight.setDate(lastNight.getDate() - 1);
+            const isEnd = isSameDay(day, lastNight);
+
+            return {
+                ...booking,
+                isStart,
+                isEnd,
+                isMiddle: !isStart && !isEnd
+            };
         });
     };
 
@@ -150,12 +170,12 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                     <div style={{
                                         flex: 1,
                                         display: 'flex',
-                                        flexDirection: isSelected ? 'column' : 'row',
-                                        justifyContent: 'center',
-                                        alignItems: isSelected ? 'stretch' : 'center',
-                                        gap: isSelected ? '1px' : '2px',
-                                        padding: '1px',
-                                        flexWrap: 'wrap'
+                                        flexDirection: 'column',
+                                        justifyContent: isSelected ? 'flex-start' : 'center',
+                                        gap: isSelected ? '4px' : '2px',
+                                        padding: isSelected ? '4px 0' : '0',
+                                        width: '100%',
+                                        marginTop: 'auto'
                                     }}>
                                         {dayBookings.map(booking => {
                                             const house = houses.find(h => h.id === (booking.house_id || booking.houseId));
@@ -166,7 +186,11 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                     <div
                                                         key={booking.id}
                                                         className="calendar-guest-name"
-                                                        style={{ backgroundColor: color }}
+                                                        style={{
+                                                            backgroundColor: color,
+                                                            margin: '0 4px',
+                                                            borderRadius: '4px'
+                                                        }}
                                                         title={`${house?.name} - ${booking.guestName}`}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
@@ -180,8 +204,20 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                 return (
                                                     <div
                                                         key={booking.id}
-                                                        className="calendar-booking-indicator"
-                                                        style={{ backgroundColor: color }}
+                                                        className="calendar-booking-bar"
+                                                        style={{
+                                                            backgroundColor: color,
+                                                            height: '6px',
+                                                            width: '100%',
+                                                            marginLeft: booking.isStart ? '15%' : '0',
+                                                            marginRight: booking.isEnd ? '15%' : '0',
+                                                            borderTopLeftRadius: booking.isStart ? '10px' : '0',
+                                                            borderBottomLeftRadius: booking.isStart ? '10px' : '0',
+                                                            borderTopRightRadius: booking.isEnd ? '10px' : '0',
+                                                            borderBottomRightRadius: booking.isEnd ? '10px' : '0',
+                                                            opacity: 0.9,
+                                                            boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                                                        }}
                                                         title={`${booking.guestName}`}
                                                     />
                                                 );
