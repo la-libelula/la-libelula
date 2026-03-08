@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, CalendarDays, ReceiptEuro, BarChart3, Home, Clock, Menu, X as CloseIcon, LogOut, User, ShieldCheck } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext.jsx';
+import { LayoutDashboard, CalendarDays, ReceiptEuro, BarChart3, Home, Clock, Menu, X as CloseIcon, LogOut, User, ShieldCheck, HelpCircle } from 'lucide-react';
+import HelpModal from '../ui/HelpModal.jsx';
 
 const Layout = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isHelpOpen, setIsHelpOpen] = useState(false);
 
     const navItems = [
         { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -18,6 +19,8 @@ const Layout = () => {
 
     return (
         <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--color-background)', flexDirection: 'column' }}>
+            <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+
             {/* Mobile Header */}
             <header style={{
                 display: 'flex',
@@ -57,12 +60,20 @@ const Layout = () => {
                         <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--color-accent)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Gestión Rural</span>
                     </div>
                 </div>
-                <button
-                    onClick={toggleMobileMenu}
-                    style={{ background: 'none', border: 'none', color: 'var(--color-primary)', display: 'flex', alignItems: 'center' }}
-                >
-                    {isMobileMenuOpen ? <CloseIcon size={24} /> : <Menu size={24} />}
-                </button>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    <button
+                        onClick={() => setIsHelpOpen(true)}
+                        style={{ background: 'none', border: 'none', color: 'var(--color-primary)', display: 'flex', alignItems: 'center' }}
+                    >
+                        <HelpCircle size={24} />
+                    </button>
+                    <button
+                        onClick={toggleMobileMenu}
+                        style={{ background: 'none', border: 'none', color: 'var(--color-primary)', display: 'flex', alignItems: 'center' }}
+                    >
+                        {isMobileMenuOpen ? <CloseIcon size={24} /> : <Menu size={24} />}
+                    </button>
+                </div>
             </header>
 
             <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
@@ -116,10 +127,32 @@ const Layout = () => {
                         ))}
                     </nav>
 
-                    <div style={{ padding: '2rem 1rem', color: 'var(--color-text-muted)', fontSize: '0.75rem', textAlign: 'center', borderTop: '1px solid var(--color-border)' }}>
-                        <p>© 2026 La Libélula</p>
+                    <div style={{ padding: '1rem', borderTop: '1px solid var(--color-border)' }}>
+                        <button
+                            onClick={() => {
+                                setIsHelpOpen(true);
+                                setIsMobileMenuOpen(false);
+                            }}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.75rem',
+                                padding: '0.75rem 1rem',
+                                border: 'none',
+                                background: 'rgba(46, 90, 53, 0.05)',
+                                color: 'var(--color-primary)',
+                                borderRadius: 'var(--radius-md)',
+                                cursor: 'pointer',
+                                fontWeight: 600,
+                                width: '100%'
+                            }}
+                        >
+                            <HelpCircle size={18} />
+                            Ayuda y Tutorial
+                        </button>
                     </div>
-                    <div style={{ padding: '1rem', color: 'var(--color-text-muted)', fontSize: '0.7rem', textAlign: 'center' }}>
+
+                    <div style={{ padding: '1rem', color: 'var(--color-text-muted)', fontSize: '0.75rem', textAlign: 'center', borderTop: '1px solid var(--color-border)' }}>
                         <p>© 2026 La Libélula</p>
                     </div>
                 </aside>
@@ -217,8 +250,27 @@ const Layout = () => {
                         ))}
                     </nav>
 
-                    <div style={{ padding: '2rem 1.5rem', borderTop: '1px solid var(--color-border)', color: 'var(--color-text-muted)', fontSize: '0.75rem', textAlign: 'center' }}>
-                        <p>© 2026 La Libélula</p>
+                    <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        <button
+                            onClick={() => setIsHelpOpen(true)}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.75rem',
+                                padding: '0.75rem 1rem',
+                                border: 'none',
+                                background: 'rgba(46, 90, 53, 0.05)',
+                                color: 'var(--color-primary)',
+                                borderRadius: 'var(--radius-md)',
+                                cursor: 'pointer',
+                                fontWeight: 600,
+                                width: '100%'
+                            }}
+                        >
+                            <HelpCircle size={18} />
+                            Ayuda y Tutorial
+                        </button>
+                        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', textAlign: 'center', marginTop: '0.5rem' }}>© 2026 La Libélula</p>
                     </div>
                 </aside>
 
