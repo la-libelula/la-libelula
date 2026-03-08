@@ -7,13 +7,11 @@ import { Home, LogIn, UserPlus, AlertCircle } from 'lucide-react';
 
 const Auth = () => {
     console.log("Auth: Rendering page");
-    const [isLogin, setIsLogin] = useState(true);
-    const [isForgotPassword, setIsForgotPassword] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
-    const { signIn, signUp, resetPassword } = useAuth();
+    const { signIn } = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -21,15 +19,7 @@ const Auth = () => {
         setLoading(true);
 
         try {
-            if (isForgotPassword) {
-                await resetPassword(email);
-                setError('success:Instrucciones enviadas. Revisa tu correo.');
-            } else if (isLogin) {
-                await signIn(email, password);
-            } else {
-                await signUp(email, password);
-                setError('success:¡Registro solicitado! REVISA TU EMAIL para confirmar la cuenta antes de entrar.');
-            }
+            await signIn(email, password);
         } catch (err) {
             console.error("Auth: Error during authentication:", err);
             setError(err.message || 'Error técnico: ' + JSON.stringify(err));
@@ -84,34 +74,14 @@ const Auth = () => {
                         placeholder="tu@email.com"
                         required
                     />
-                    {!isForgotPassword && (
-                        <Input
-                            label="Contraseña"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="••••••••"
-                            required
-                        />
-                    )}
-
-                    {isLogin && !isForgotPassword && (
-                        <button
-                            type="button"
-                            onClick={() => setIsForgotPassword(true)}
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                color: 'var(--color-primary)',
-                                fontSize: '0.8rem',
-                                textAlign: 'right',
-                                marginTop: '-0.75rem',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            ¿Olvidaste tu contraseña?
-                        </button>
-                    )}
+                    <Input
+                        label="Contraseña"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        required
+                    />
 
                     {error && (
                         <div style={{
@@ -132,45 +102,12 @@ const Auth = () => {
                     <Button
                         type="submit"
                         isLoading={loading}
-                        icon={isForgotPassword ? AlertCircle : (isLogin ? LogIn : UserPlus)}
+                        icon={LogIn}
                         style={{ width: '100%', marginTop: '0.5rem' }}
                     >
-                        {isForgotPassword ? 'Enviar Instrucciones' : (isLogin ? 'Entrar' : 'Registrarse')}
+                        Entrar
                     </Button>
                 </form>
-
-                <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.9rem' }}>
-                    <p style={{ color: 'var(--color-text-muted)' }}>
-                        {isForgotPassword ? (
-                            <button
-                                type="button"
-                                onClick={() => setIsForgotPassword(false)}
-                                style={{ background: 'none', border: 'none', color: 'var(--color-primary)', fontWeight: 600, cursor: 'pointer' }}
-                            >
-                                Volver al inicio de sesión
-                            </button>
-                        ) : (
-                            <>
-                                {isLogin ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
-                                {' '}
-                                <button
-                                    type="button"
-                                    onClick={() => setIsLogin(!isLogin)}
-                                    style={{
-                                        background: 'none',
-                                        border: 'none',
-                                        color: 'var(--color-primary)',
-                                        fontWeight: 600,
-                                        cursor: 'pointer',
-                                        padding: 0
-                                    }}
-                                >
-                                    {isLogin ? 'Crea una ahora' : 'Inicia sesión'}
-                                </button>
-                            </>
-                        )}
-                    </p>
-                </div>
             </Card>
         </div>
     );
