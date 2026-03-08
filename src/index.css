@@ -345,3 +345,12 @@ input[type=number] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/* Ocultar barra de herramientas de Vercel en la PWA para una experiencia más limpia */
+#vercel-live-feedback,
+[data-vercel-toolbar],
+.vercel-toolbar-container {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
