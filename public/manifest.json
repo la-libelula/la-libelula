@@ -1,7 +1,7 @@
 {
     "short_name": "La Libélula",
     "name": "Gestión Rural La Libélula",
-    "id": "/pwa-v13",
+    "id": "/pwa-v14",
     "icons": [
         {
             "src": "favicon.png",
@@ -17,17 +17,19 @@
             "src": "pwa-v13.png",
             "type": "image/png",
             "sizes": "512x512",
-            "purpose": "any maskable"
+            "purpose": "any"
         },
         {
             "src": "pwa-v13.png",
             "type": "image/png",
             "sizes": "512x512",
-            "purpose": "any"
+            "purpose": "maskable"
         }
     ],
-    "start_url": "/?v=13",
+    "start_url": "/?v=14",
     "display": "standalone",
+    "orientation": "portrait",
+    "scope": "/",
     "theme_color": "#1e3a24",
     "background_color": "#ffffff"
 }
