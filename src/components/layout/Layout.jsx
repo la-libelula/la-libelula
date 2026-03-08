@@ -63,9 +63,19 @@ const Layout = () => {
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                     <button
                         onClick={() => setIsHelpOpen(true)}
-                        style={{ background: 'none', border: 'none', color: 'var(--color-primary)', display: 'flex', alignItems: 'center' }}
+                        title="Ayuda y Tutorial"
+                        style={{
+                            background: 'rgba(46, 90, 53, 0.08)',
+                            border: '1px solid rgba(46, 90, 53, 0.2)',
+                            color: 'var(--color-primary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '6px',
+                            borderRadius: '50%',
+                            cursor: 'pointer'
+                        }}
                     >
-                        <HelpCircle size={24} />
+                        <HelpCircle size={22} />
                     </button>
                     <button
                         onClick={toggleMobileMenu}
@@ -137,14 +147,15 @@ const Layout = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '0.75rem',
-                                padding: '0.75rem 1rem',
-                                border: 'none',
-                                background: 'rgba(46, 90, 53, 0.05)',
+                                padding: '0.85rem 1rem',
+                                border: '1px solid rgba(46, 90, 53, 0.2)',
+                                background: 'rgba(46, 90, 53, 0.08)',
                                 color: 'var(--color-primary)',
                                 borderRadius: 'var(--radius-md)',
                                 cursor: 'pointer',
                                 fontWeight: 600,
-                                width: '100%'
+                                width: '100%',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
                             }}
                         >
                             <HelpCircle size={18} />
@@ -257,14 +268,15 @@ const Layout = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '0.75rem',
-                                padding: '0.75rem 1rem',
-                                border: 'none',
-                                background: 'rgba(46, 90, 53, 0.05)',
+                                padding: '0.85rem 1rem',
+                                border: '1px solid rgba(46, 90, 53, 0.2)',
+                                background: 'rgba(46, 90, 53, 0.08)',
                                 color: 'var(--color-primary)',
                                 borderRadius: 'var(--radius-md)',
                                 cursor: 'pointer',
                                 fontWeight: 600,
-                                width: '100%'
+                                width: '100%',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
                             }}
                         >
                             <HelpCircle size={18} />

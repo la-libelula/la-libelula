@@ -1,4 +1,4 @@
-const CACHE_NAME = 'la-libelula-v8-help-tutorial';
+const CACHE_NAME = 'la-libelula-v9-icon-prominent';
 const ASSETS = [
     '/',
     '/index.html',
@@ -8,7 +8,8 @@ const ASSETS = [
     '/logo192.png',
     '/logo512.png',
     '/logo_premium.png',
-    '/logo_launcher.png'
+    '/pwa-icon-192.png',
+    '/pwa-icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
