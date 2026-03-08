@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Card from '../components/ui/Card';
-import { Home, LogIn, UserPlus, AlertCircle } from 'lucide-react';
+import { LogIn, AlertCircle } from 'lucide-react';
 
 const Auth = () => {
     console.log("Auth: Rendering page");
@@ -61,7 +61,7 @@ const Auth = () => {
                         <div style={{ height: '1px', width: '20px', backgroundColor: 'var(--color-accent)' }}></div>
                     </div>
                     <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem', fontWeight: 500 }}>
-                        {isLogin ? 'Gestión rural' : 'Comienza tu experiencia'}
+                        Acceso Personal
                     </p>
                 </div>
 
