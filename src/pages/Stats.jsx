@@ -2,8 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import Card from '../components/ui/Card';
 import Select from '../components/ui/Select';
+import Chart from '../components/ui/Chart';
 import { HOUSES } from '../utils/constants';
-import { startOfYear, endOfYear, parseISO, getYear } from 'date-fns';
+import { startOfYear, endOfYear, parseISO, getYear, format, getMonth } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const Stats = () => {
     const { bookings, expenses, loading } = useApp();
@@ -11,6 +13,11 @@ const Stats = () => {
     const [selectedYear1, setSelectedYear1] = useState(currentYear);
     const [selectedYear2, setSelectedYear2] = useState(currentYear - 1);
     const [selectedHouse, setSelectedHouse] = useState('all');
+
+    const MONTHS = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
 
     // Get available years from data
     const years = useMemo(() => {
@@ -31,6 +38,32 @@ const Stats = () => {
         });
         return Array.from(yearsSet).sort((a, b) => b - a);
     }, [bookings, expenses, currentYear]);
+
+    const chartData = useMemo(() => {
+        return MONTHS.map((month, index) => {
+            const data = { name: month };
+
+            // Year 1 Data
+            const y1Bookings = (bookings || []).filter(b => {
+                if (!b.checkIn) return false;
+                const date = parseISO(b.checkIn);
+                const matchesHouse = selectedHouse === 'all' || b.houseId === selectedHouse;
+                return matchesHouse && getYear(date) === selectedYear1 && getMonth(date) === index;
+            });
+            data.year1 = y1Bookings.reduce((sum, b) => sum + (parseFloat(b.netIncome) || 0), 0);
+
+            // Year 2 Data
+            const y2Bookings = (bookings || []).filter(b => {
+                if (!b.checkIn) return false;
+                const date = parseISO(b.checkIn);
+                const matchesHouse = selectedHouse === 'all' || b.houseId === selectedHouse;
+                return matchesHouse && getYear(date) === selectedYear2 && getMonth(date) === index;
+            });
+            data.year2 = y2Bookings.reduce((sum, b) => sum + (parseFloat(b.netIncome) || 0), 0);
+
+            return data;
+        });
+    }, [bookings, selectedYear1, selectedYear2, selectedHouse]);
 
     if (loading) {
         return (
@@ -154,6 +187,16 @@ const Stats = () => {
                     </Card>
                 </div>
             </div>
+
+            <Card title="Evolución Mensual de Ingresos" style={{ marginBottom: '2rem' }}>
+                <Chart
+                    data={chartData}
+                    series={[
+                        { key: 'year1', label: `${selectedYear1}`, color: 'var(--color-primary)' },
+                        { key: 'year2', label: `${selectedYear2}`, color: 'var(--color-secondary)' }
+                    ]}
+                />
+            </Card>
 
             <Card title="Diferencia (Año A - Año B)">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
