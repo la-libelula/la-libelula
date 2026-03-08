@@ -1,4 +1,4 @@
-const CACHE_NAME = 'la-libelula-v10-final-branding';
+const CACHE_NAME = 'la-libelula-v11-hard-refresh';
 const ASSETS = [
     '/',
     '/index.html',
@@ -6,7 +6,8 @@ const ASSETS = [
     '/favicon.png',
     '/logo192.png',
     '/logo512.png',
-    '/logo_premium.png'
+    '/logo_premium.png',
+    '/la-libelula-v11.png'
 ];
 
 self.addEventListener('install', (event) => {
