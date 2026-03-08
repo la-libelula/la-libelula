@@ -44,7 +44,7 @@ const Bookings = () => {
         <div style={{ position: 'relative' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <h2>Reservas</h2>
-                <Button onClick={() => setIsFormOpen(true)} icon={Plus} variant="premium">
+                <Button onClick={() => setIsFormOpen(true)} icon={Plus}>
                     Nueva Reserva
                 </Button>
             </div>

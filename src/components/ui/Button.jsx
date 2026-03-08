@@ -12,17 +12,8 @@ const Button = ({
 }) => {
     const baseStyles = 'inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';
 
-    const variants = {
-        primary: 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)] focus:ring-[var(--color-primary)]',
-        secondary: 'bg-white text-[var(--color-text)] border border-[var(--color-border)] hover:bg-[var(--color-background)] focus:ring-[var(--color-text-muted)]',
-        danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-600', // Using tailwind utility if available, otherwise fallback to style. Assuming we use index.css variables for consistency
-        ghost: 'bg-transparent text-[var(--color-text)] hover:bg-[var(--color-background)]',
-    };
-
-    // Since we are using standard CSS variables and not Tailwind, we should use style={{}} or classes mapping to our CSS
-    // However, I see I used 'bg-[var(--color-primary)]' which is Tailwind arbitrary value syntax. 
-    // I must check if Tailwind is installed. I did NOT install Tailwind. I used vanilla CSS in index.css.
-    // I should rewrite this to use className with my own CSS classes or inline styles.
+    // We use vanilla CSS classes defined in index.css
+    // Variants: primary, secondary, premium, etc.
 
     // Let's use vanilla CSS classes defined in a module or just inline styles for simplicity here,
     // or better yet, define utility classes in index.css.
@@ -31,6 +22,9 @@ const Button = ({
     let btnClass = 'btn';
     if (variant === 'primary') btnClass += ' btn-primary';
     else if (variant === 'secondary') btnClass += ' btn-secondary';
+    else if (variant === 'premium') btnClass += ' btn-premium';
+    else if (variant === 'danger') btnClass += ' btn-danger';
+    else if (variant === 'ghost') btnClass += ' btn-ghost';
 
     // Handling sizes manually for now via inline style or additional classes
     const sizeStyles = {
