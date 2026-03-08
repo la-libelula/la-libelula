@@ -1,4 +1,4 @@
-const CACHE_NAME = 'la-libelula-v1';
+const CACHE_NAME = 'la-libelula-v3-fresh';
 const ASSETS = [
     '/',
     '/index.html',

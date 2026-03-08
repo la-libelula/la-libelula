@@ -4,7 +4,7 @@ export const HOUSES = [
 ];
 
 export const CHANNELS = [
-  { id: 'booking', name: 'Booking.com', commission: 0.15 }, // Example commission
+  { id: 'booking', name: 'Booking.com', commission: 0.15 },
   { id: 'airbnb', name: 'Airbnb', commission: 0.15 },
   { id: 'web', name: 'Web Propia', commission: 0.0 },
   { id: 'direct', name: 'Directo/Otro', commission: 0.0 }

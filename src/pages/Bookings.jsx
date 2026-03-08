@@ -44,18 +44,18 @@ const Bookings = () => {
         <div style={{ position: 'relative' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <h2>Reservas</h2>
-                <Button onClick={() => setIsFormOpen(true)} icon={Plus}>
+                <Button onClick={() => setIsFormOpen(true)} icon={Plus} variant="premium">
                     Nueva Reserva
                 </Button>
             </div>
 
-            <Card>
+            <div style={{ margin: '0 -0.5rem' }}> {/* Adjusted to match Layout mobile padding */}
                 <Calendar
                     bookings={bookings}
                     onDateClick={handleDateClick}
                     onBookingClick={handleBookingClick}
                 />
-            </Card>
+            </div>
 
             {/* Modal Overlay for Form */}
             {isFormOpen && (
