@@ -57,7 +57,7 @@ const Layout = () => {
                             display: 'block',
                             lineHeight: 1
                         }}>La Libélula</span>
-                        <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--color-accent)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Gestión Rural</span>
+                        <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--color-accent)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>App de Gestión</span>
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
@@ -232,7 +232,7 @@ const Layout = () => {
                                 color: 'var(--color-primary)',
                                 letterSpacing: '-0.04em'
                             }}>La Libélula</h1>
-                            <p style={{ fontSize: '0.7rem', color: 'var(--color-accent)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em', marginTop: '0.25rem' }}>Gestión Rural</p>
+                            <p style={{ fontSize: '0.7rem', color: 'var(--color-accent)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em', marginTop: '0.25rem' }}>App de Gestión</p>
                         </div>
                     </div>
                     <nav style={{ flex: 1, padding: '0 1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
