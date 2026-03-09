@@ -15,13 +15,13 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="La Libélula" />
-  <link rel="apple-touch-icon" href="/libelula-v17.png?v=19" />
-  <link rel="manifest" href="/site.webmanifest?v=19" />
+  <link rel="apple-touch-icon" href="/pwa-v21-192.png" />
+  <link rel="manifest" href="/libelula.webmanifest" />
   <script>
-    // NUCLEAR AUTO-RESET v18
-    const CURRENT_VERSION = "18";
+    // NUCLEAR AUTO-RESET v21
+    const CURRENT_VERSION = "21";
     if (localStorage.getItem("libelula_version") !== CURRENT_VERSION) {
-      console.log("Forcing Nuclear Reset to v18...");
+      console.log("Forcing Nuclear Reset to v21...");
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(regs => {
           for (let reg of regs) reg.unregister();
@@ -38,9 +38,9 @@
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/worker-v17.js?v=18')
+        navigator.serviceWorker.register('/worker-v21.js')
           .then(reg => {
-            console.log('SW Registered v18:', reg);
+            console.log('SW Registered v21:', reg);
           })
           .catch(err => console.error('SW Failed:', err));
       });
