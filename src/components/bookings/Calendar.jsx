@@ -171,17 +171,18 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                         flex: 1,
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        justifyContent: isSelected ? 'flex-start' : 'center',
-                                        gap: isSelected ? '4px' : '2px',
-                                        padding: isSelected ? '4px 0' : '0',
+                                        justifyContent: isSelected ? 'flex-start' : 'space-between',
+                                        gap: isSelected ? '4px' : '0',
+                                        padding: isSelected ? '4px 0' : '2px 0',
                                         width: '100%',
-                                        marginTop: 'auto'
+                                        marginTop: 'auto',
+                                        minHeight: isSelected ? 'auto' : '16px', // Altura fija para que los carriles no colapsen
+                                        position: 'relative'
                                     }}>
-                                        {dayBookings.map(booking => {
-                                            const house = houses.find(h => h.id === (booking.house_id || booking.houseId));
-                                            const color = house?.color === 'secondary' ? 'var(--color-secondary)' : 'var(--color-primary)';
-
-                                            if (isSelected) {
+                                        {isSelected ? (
+                                            dayBookings.map(booking => {
+                                                const house = houses.find(h => h.id === (booking.house_id || booking.houseId));
+                                                const color = house?.color === 'secondary' ? 'var(--color-secondary)' : 'var(--color-primary)';
                                                 return (
                                                     <div
                                                         key={booking.id}
@@ -200,7 +201,16 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                         {booking.guestName}
                                                     </div>
                                                 );
-                                            } else {
+                                            })
+                                        ) : (
+                                            // Mapeo por carriles fijos: Arriba Gredos, Abajo Valles
+                                            ['gredos', 'valles'].map(houseId => {
+                                                const booking = dayBookings.find(b => (b.house_id || b.houseId) === houseId);
+                                                if (!booking) return <div key={houseId} style={{ height: '6px' }} />; // Espacio vacío para mantener el carril
+
+                                                const house = houses.find(h => h.id === houseId);
+                                                const color = house?.color === 'secondary' ? 'var(--color-secondary)' : 'var(--color-primary)';
+
                                                 return (
                                                     <div
                                                         key={booking.id}
@@ -221,8 +231,8 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                         title={`${booking.guestName}`}
                                                     />
                                                 );
-                                            }
-                                        })}
+                                            })
+                                        )}
                                     </div>
                                 )}
                             </div>
