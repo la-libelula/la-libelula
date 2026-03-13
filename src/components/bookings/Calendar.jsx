@@ -171,12 +171,12 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                         flex: 1,
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        justifyContent: isSelected ? 'flex-start' : 'space-between',
-                                        gap: isSelected ? '4px' : '0',
-                                        padding: isSelected ? '4px 0' : '2px 0',
+                                        justifyContent: isSelected ? 'flex-start' : 'center',
+                                        gap: isSelected ? '4px' : '1px',
+                                        padding: isSelected ? '4px 0' : '1px 0',
                                         width: '100%',
                                         marginTop: 'auto',
-                                        minHeight: isSelected ? 'auto' : '16px', // Altura fija para que los carriles no colapsen
+                                        minHeight: isSelected ? 'auto' : '13px', // Altura reducida para centrar más las barras
                                         position: 'relative'
                                     }}>
                                         {isSelected ? (
