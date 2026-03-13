@@ -172,11 +172,11 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                         display: 'flex',
                                         flexDirection: 'column',
                                         justifyContent: isSelected ? 'flex-start' : 'center',
-                                        gap: isSelected ? '4px' : '1px',
+                                        gap: isSelected ? '4px' : '4px', // Mayor hueco para 'línea imaginaria' clara
                                         padding: isSelected ? '4px 0' : '1px 0',
                                         width: '100%',
                                         marginTop: 'auto',
-                                        minHeight: isSelected ? 'auto' : '13px', // Altura reducida para centrar más las barras
+                                        minHeight: isSelected ? 'auto' : '18px', // Altura aumentada para mostrar bien el hueco
                                         position: 'relative'
                                     }}>
                                         {isSelected ? (
