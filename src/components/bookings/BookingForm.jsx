@@ -4,6 +4,7 @@ import { HOUSES, CHANNELS } from '../../utils/constants';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
+import DateRangePicker from '../ui/DateRangePicker';
 import { differenceInDays, parseISO } from 'date-fns';
 import { Save, X, Trash2 } from 'lucide-react';
 
@@ -105,24 +106,13 @@ const BookingForm = ({ onClose, initialData = null }) => {
                 />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <Input
-                    label="Entrada"
-                    type="date"
-                    name="checkIn"
-                    value={formData.checkIn}
-                    onChange={handleChange}
-                    required
-                />
-                <Input
-                    label="Salida"
-                    type="date"
-                    name="checkOut"
-                    value={formData.checkOut}
-                    onChange={handleChange}
-                    required
-                />
-            </div>
+            <DateRangePicker
+                label="Fechas de Estancia"
+                checkIn={formData.checkIn}
+                checkOut={formData.checkOut}
+                onChange={({ checkIn, checkOut }) => setFormData(prev => ({ ...prev, checkIn, checkOut }))}
+                required
+            />
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <Select

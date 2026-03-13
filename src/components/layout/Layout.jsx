@@ -165,7 +165,7 @@ const Layout = () => {
 
                     <div style={{ padding: '1rem', color: 'var(--color-text-muted)', fontSize: '0.75rem', textAlign: 'center', borderTop: '1px solid var(--color-border)' }}>
                         <p>© 2026 La Libélula</p>
-                        <p style={{ fontSize: '0.6rem', opacity: 0.5 }}>Versión v22</p>
+                        <p style={{ fontSize: '0.6rem', opacity: 0.5 }}>Versión v23.3</p>
                     </div>
                 </aside>
 
