@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import Card from '../components/ui/Card';
 import Select from '../components/ui/Select';
-import Chart from '../components/ui/Chart';
 import BarChart from '../components/ui/BarChart';
 import { HOUSES } from '../utils/constants';
 import { startOfYear, endOfYear, parseISO, getYear, format, getMonth } from 'date-fns';
@@ -14,6 +13,7 @@ const Stats = () => {
     const [selectedYear1, setSelectedYear1] = useState(currentYear);
     const [selectedYear2, setSelectedYear2] = useState(currentYear - 1);
     const [selectedYear3, setSelectedYear3] = useState(currentYear - 2);
+    const [selectedMonthlyYear, setSelectedMonthlyYear] = useState(currentYear);
     const [selectedHouse, setSelectedHouse] = useState('all');
 
     const MONTHS = [
@@ -41,31 +41,34 @@ const Stats = () => {
         return Array.from(yearsSet).sort((a, b) => b - a);
     }, [bookings, expenses, currentYear]);
 
-    const chartData = useMemo(() => {
+    const monthlyBarChartData = useMemo(() => {
         return MONTHS.map((month, index) => {
-            const data = { name: month };
-
-            // Year 1 Data
-            const y1Bookings = (bookings || []).filter(b => {
+            const mBookings = (bookings || []).filter(b => {
                 if (!b.checkIn) return false;
                 const date = parseISO(b.checkIn);
                 const matchesHouse = selectedHouse === 'all' || b.houseId === selectedHouse;
-                return matchesHouse && getYear(date) === selectedYear1 && getMonth(date) === index;
+                return matchesHouse && getYear(date) === selectedMonthlyYear && getMonth(date) === index;
             });
-            data.year1 = y1Bookings.reduce((sum, b) => sum + (parseFloat(b.netIncome) || 0), 0);
 
-            // Year 2 Data
-            const y2Bookings = (bookings || []).filter(b => {
-                if (!b.checkIn) return false;
-                const date = parseISO(b.checkIn);
-                const matchesHouse = selectedHouse === 'all' || b.houseId === selectedHouse;
-                return matchesHouse && getYear(date) === selectedYear2 && getMonth(date) === index;
+            const mExpenses = (expenses || []).filter(e => {
+                if (!e.date) return false;
+                const date = parseISO(e.date);
+                const matchesHouse = selectedHouse === 'all' || e.houseId === selectedHouse;
+                return matchesHouse && getYear(date) === selectedMonthlyYear && getMonth(date) === index;
             });
-            data.year2 = y2Bookings.reduce((sum, b) => sum + (parseFloat(b.netIncome) || 0), 0);
 
-            return data;
+            const gross = mBookings.reduce((sum, b) => sum + (parseFloat(b.totalAmount) || 0), 0);
+            const net = mBookings.reduce((sum, b) => sum + (parseFloat(b.netIncome) || 0), 0);
+            const exp = mExpenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+
+            return { 
+                name: month.substring(0, 3), // Ene, Feb, Mar...
+                gross: gross,
+                net: net,
+                expenses: exp
+            };
         });
-    }, [bookings, selectedYear1, selectedYear2, selectedHouse]);
+    }, [bookings, expenses, selectedMonthlyYear, selectedHouse]);
 
     const calculateStats = (year) => {
         const start = startOfYear(new Date(year, 0, 1));
@@ -260,12 +263,25 @@ const Stats = () => {
                 />
             </Card>
 
-            <Card title="Evolución Mensual (Netos)" style={{ marginBottom: '2rem' }}>
-                <Chart
-                    data={chartData}
+            <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                <h3 style={{ margin: 0, color: 'var(--color-text)' }}>Desglose Mensual</h3>
+                <div style={{ width: '150px' }}>
+                    <Select
+                        label=""
+                        value={selectedMonthlyYear}
+                        onChange={(e) => setSelectedMonthlyYear(parseInt(e.target.value))}
+                        options={years.map(y => ({ value: y, label: y }))}
+                    />
+                </div>
+            </div>
+
+            <Card style={{ marginBottom: '2rem' }}>
+                <BarChart
+                    data={monthlyBarChartData}
                     series={[
-                        { key: 'year1', label: `${selectedYear1}`, color: 'var(--color-primary)' },
-                        { key: 'year2', label: `${selectedYear2}`, color: 'var(--color-secondary)' }
+                        { key: 'gross', label: 'Bruto', color: '#cbd5e1' },
+                        { key: 'net', label: 'Neto', color: 'var(--color-primary)' },
+                        { key: 'expenses', label: 'Gastos', color: '#ef4444' }
                     ]}
                 />
             </Card>
