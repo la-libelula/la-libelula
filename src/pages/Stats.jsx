@@ -67,21 +67,6 @@ const Stats = () => {
         });
     }, [bookings, selectedYear1, selectedYear2, selectedHouse]);
 
-    if (loading) {
-        return (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ width: '40px', height: '40px', border: '4px solid var(--color-border)', borderTopColor: 'var(--color-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-                <p style={{ color: 'var(--color-text-muted)' }}>Analizando datos...</p>
-                <style>{`
-                    @keyframes spin {
-                        from { transform: rotate(0deg); }
-                        to { transform: rotate(360deg); }
-                    }
-                `}</style>
-            </div>
-        );
-    }
-
     const calculateStats = (year) => {
         const start = startOfYear(new Date(year, 0, 1));
         const end = endOfYear(new Date(year, 0, 1));
@@ -125,6 +110,21 @@ const Stats = () => {
             };
         });
     }, [selectedYear1, selectedYear2, selectedYear3, bookings, expenses, selectedHouse]);
+
+    if (loading) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ width: '40px', height: '40px', border: '4px solid var(--color-border)', borderTopColor: 'var(--color-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                <p style={{ color: 'var(--color-text-muted)' }}>Analizando datos...</p>
+                <style>{`
+                    @keyframes spin {
+                        from { transform: rotate(0deg); }
+                        to { transform: rotate(360deg); }
+                    }
+                `}</style>
+            </div>
+        );
+    }
 
     const formatCurrency = (val) => (val || 0).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
 
