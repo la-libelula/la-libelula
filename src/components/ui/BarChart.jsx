@@ -6,7 +6,7 @@ const BarChart = ({ data, series, height = 300, title }) => {
 
     if (!data || data.length === 0) return <div>No hay datos para mostrar</div>;
 
-    const padding = { top: 40, right: 20, bottom: 40, left: 60 };
+    const padding = { top: 40, right: 20, bottom: 40, left: 75 };
     const chartWidth = 800;
     const chartHeight = height;
 
@@ -107,7 +107,7 @@ const BarChart = ({ data, series, height = 300, title }) => {
                                 fontSize="12"
                                 fill="var(--color-text-muted)"
                             >
-                                {tick >= 1000 ? `${(tick / 1000).toFixed(1)}k` : Math.round(tick)}
+                                {Math.round(tick).toLocaleString('es-ES')} €
                             </text>
                         </g>
                     );
