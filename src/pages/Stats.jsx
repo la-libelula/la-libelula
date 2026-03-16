@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import Card from '../components/ui/Card';
 import Select from '../components/ui/Select';
 import Chart from '../components/ui/Chart';
+import BarChart from '../components/ui/BarChart';
 import { HOUSES } from '../utils/constants';
 import { startOfYear, endOfYear, parseISO, getYear, format, getMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -12,6 +13,7 @@ const Stats = () => {
     const currentYear = new Date().getFullYear();
     const [selectedYear1, setSelectedYear1] = useState(currentYear);
     const [selectedYear2, setSelectedYear2] = useState(currentYear - 1);
+    const [selectedYear3, setSelectedYear3] = useState(currentYear - 2);
     const [selectedHouse, setSelectedHouse] = useState('all');
 
     const MONTHS = [
@@ -98,14 +100,31 @@ const Stats = () => {
             return matchesHouse && date >= start && date <= end;
         });
 
+        const grossRevenue = yearBookings.reduce((sum, b) => sum + (parseFloat(b.totalAmount) || 0), 0);
         const revenue = yearBookings.reduce((sum, b) => sum + (parseFloat(b.netIncome) || 0), 0);
         const expenseTotal = yearExpenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
 
-        return { revenue, expenseTotal, profit: revenue - expenseTotal, count: yearBookings.length };
+        return { grossRevenue, revenue, expenseTotal, profit: revenue - expenseTotal, count: yearBookings.length };
     };
 
     const stats1 = calculateStats(selectedYear1);
     const stats2 = calculateStats(selectedYear2);
+    const stats3 = calculateStats(selectedYear3);
+
+    const barChartData = useMemo(() => {
+        // Collect actual chosen years, sort them chronologically
+        const chosenYears = Array.from(new Set([selectedYear3, selectedYear2, selectedYear1])).sort((a, b) => a - b);
+        
+        return chosenYears.map(year => {
+            const stats = calculateStats(year);
+            return {
+                name: year.toString(),
+                gross: stats.grossRevenue,
+                net: stats.revenue,
+                expenses: stats.expenseTotal
+            };
+        });
+    }, [selectedYear1, selectedYear2, selectedYear3, bookings, expenses, selectedHouse]);
 
     const formatCurrency = (val) => (val || 0).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
 
@@ -126,16 +145,20 @@ const Stats = () => {
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', marginBottom: '2rem' }}>
                 <div>
                     <Select
-                        label="Año A"
+                        label="Año A (Actual)"
                         value={selectedYear1}
                         onChange={(e) => setSelectedYear1(parseInt(e.target.value))}
                         options={years.map(y => ({ value: y, label: y }))}
                     />
                     <Card title={`Resultados ${selectedYear1}`}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span>Ingresos Brutos:</span>
+                                <span>{formatCurrency(stats1.grossRevenue)}</span>
+                            </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span>Ingresos Netos:</span>
                                 <span style={{ fontWeight: 700, color: 'var(--color-secondary)' }}>{formatCurrency(stats1.revenue)}</span>
@@ -146,7 +169,7 @@ const Stats = () => {
                             </div>
                             <div style={{ height: '1px', backgroundColor: 'var(--color-border)' }}></div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem' }}>
-                                <span>Beneficio:</span>
+                                <span>Beneficio Limpio:</span>
                                 <span style={{ fontWeight: 800, color: stats1.profit >= 0 ? 'var(--color-primary)' : '#ef4444' }}>{formatCurrency(stats1.profit)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
@@ -159,13 +182,17 @@ const Stats = () => {
 
                 <div>
                     <Select
-                        label="Año B"
+                        label="Año B (Anterior)"
                         value={selectedYear2}
                         onChange={(e) => setSelectedYear2(parseInt(e.target.value))}
                         options={years.map(y => ({ value: y, label: y }))}
                     />
                     <Card title={`Resultados ${selectedYear2}`}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span>Ingresos Brutos:</span>
+                                <span>{formatCurrency(stats2.grossRevenue)}</span>
+                            </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span>Ingresos Netos:</span>
                                 <span style={{ fontWeight: 700, color: 'var(--color-secondary)' }}>{formatCurrency(stats2.revenue)}</span>
@@ -176,19 +203,56 @@ const Stats = () => {
                             </div>
                             <div style={{ height: '1px', backgroundColor: 'var(--color-border)' }}></div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem' }}>
-                                <span>Beneficio:</span>
+                                <span>Beneficio Limpio:</span>
                                 <span style={{ fontWeight: 800, color: stats2.profit >= 0 ? 'var(--color-primary)' : '#ef4444' }}>{formatCurrency(stats2.profit)}</span>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
-                                <span>Reservas:</span>
-                                <span>{stats2.count}</span>
+                        </div>
+                    </Card>
+                </div>
+
+                <div>
+                    <Select
+                        label="Año C (Histórico)"
+                        value={selectedYear3}
+                        onChange={(e) => setSelectedYear3(parseInt(e.target.value))}
+                        options={years.map(y => ({ value: y, label: y }))}
+                    />
+                    <Card title={`Resultados ${selectedYear3}`}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span>Ingresos Brutos:</span>
+                                <span>{formatCurrency(stats3.grossRevenue)}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span>Ingresos Netos:</span>
+                                <span style={{ fontWeight: 700, color: 'var(--color-secondary)' }}>{formatCurrency(stats3.revenue)}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span>Gastos Totales:</span>
+                                <span style={{ fontWeight: 700, color: '#ef4444' }}>{formatCurrency(stats3.expenseTotal)}</span>
+                            </div>
+                            <div style={{ height: '1px', backgroundColor: 'var(--color-border)' }}></div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem' }}>
+                                <span>Beneficio Limpio:</span>
+                                <span style={{ fontWeight: 800, color: stats3.profit >= 0 ? 'var(--color-primary)' : '#ef4444' }}>{formatCurrency(stats3.profit)}</span>
                             </div>
                         </div>
                     </Card>
                 </div>
             </div>
 
-            <Card title="Evolución Mensual de Ingresos" style={{ marginBottom: '2rem' }}>
+            <Card title="Comparativa Económica Anual (Bruto vs Neto vs Gastos)" style={{ marginBottom: '2rem' }}>
+                <BarChart
+                    data={barChartData}
+                    series={[
+                        { key: 'gross', label: 'Ingresos Brutos', color: '#cbd5e1' }, // Gris claro o dorado
+                        { key: 'net', label: 'Ingresos Netos', color: 'var(--color-primary)' }, // Verde
+                        { key: 'expenses', label: 'Gastos Estructura', color: '#ef4444' } // Rojo
+                    ]}
+                />
+            </Card>
+
+            <Card title="Evolución Mensual (Netos)" style={{ marginBottom: '2rem' }}>
                 <Chart
                     data={chartData}
                     series={[
@@ -198,16 +262,16 @@ const Stats = () => {
                 />
             </Card>
 
-            <Card title="Diferencia (Año A - Año B)">
+            <Card style={{ marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                        <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Variación Beneficio</div>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Crecimiento Beneficio (Año A vs Año B)</div>
                         <div style={{ fontSize: '1.5rem', fontWeight: 700, color: (stats1.profit - stats2.profit) >= 0 ? 'var(--color-secondary)' : '#ef4444' }}>
                             {formatCurrency(stats1.profit - stats2.profit)}
                         </div>
                     </div>
-                    <div>
-                        <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Variación Ingresos</div>
+                    <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Crecimiento Netos</div>
                         <div style={{ fontWeight: 600 }}>{formatCurrency(stats1.revenue - stats2.revenue)}</div>
                     </div>
                 </div>
