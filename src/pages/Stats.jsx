@@ -206,6 +206,10 @@ const Stats = () => {
                                 <span>Beneficio Limpio:</span>
                                 <span style={{ fontWeight: 800, color: stats2.profit >= 0 ? 'var(--color-primary)' : '#ef4444' }}>{formatCurrency(stats2.profit)}</span>
                             </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                                <span>Reservas:</span>
+                                <span>{stats2.count}</span>
+                            </div>
                         </div>
                     </Card>
                 </div>
@@ -235,6 +239,10 @@ const Stats = () => {
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem' }}>
                                 <span>Beneficio Limpio:</span>
                                 <span style={{ fontWeight: 800, color: stats3.profit >= 0 ? 'var(--color-primary)' : '#ef4444' }}>{formatCurrency(stats3.profit)}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                                <span>Reservas:</span>
+                                <span>{stats3.count}</span>
                             </div>
                         </div>
                     </Card>
