@@ -256,7 +256,12 @@ const Stats = () => {
                 <BarChart
                     data={barChartData}
                     series={[
-                        { key: 'net', label: 'Ingresos Netos', color: 'var(--color-primary)' } // Verde
+                        { 
+                            key: 'net', 
+                            label: 'Ingresos Netos', 
+                            color: 'var(--color-primary)',
+                            colors: ['#94a3b8', 'var(--color-secondary)', 'var(--color-primary)'] // Gris, Dorado, Verde
+                        }
                     ]}
                 />
             </Card>

@@ -21,7 +21,7 @@ const BarChart = ({ data, series, height = 300, title }) => {
 
     const getY = (value) => padding.top + innerHeight - (value / maxValue) * innerHeight;
 
-    const handleMouseMove = (e, d, xCenter) => {
+    const handleMouseMove = (e, d, index) => {
         if (!containerRef.current) return;
         const rect = containerRef.current.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -44,17 +44,20 @@ const BarChart = ({ data, series, height = 300, title }) => {
                     <div style={{ fontWeight: 700, marginBottom: '8px', color: '#333', textAlign: 'center', borderBottom: '1px solid #eee', paddingBottom: '4px' }}>
                         Año {d.name}
                     </div>
-                    {series.map(s => (
-                        <div key={s.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <div style={{ width: '8px', height: '8px', borderRadius: '2px', backgroundColor: s.color }}></div>
-                                <span style={{ color: '#555' }}>{s.label}</span>
+                    {series.map(s => {
+                        const itemColor = s.colors ? s.colors[index % s.colors.length] : s.color;
+                        return (
+                            <div key={s.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <div style={{ width: '8px', height: '8px', borderRadius: '2px', backgroundColor: itemColor }}></div>
+                                    <span style={{ color: '#555' }}>{s.label}</span>
+                                </div>
+                                <strong style={{ color: itemColor }}>
+                                    {d[s.key].toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                                </strong>
                             </div>
-                            <strong style={{ color: s.color }}>
-                                {d[s.key].toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
-                            </strong>
-                        </div>
-                    ))}
+                        );
+                    })}
                     <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px dotted #ccc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ color: '#555', fontWeight: 600 }}>Beneficio Total:</span>
                         <strong style={{ color: (d.net - d.expenses) >= 0 ? 'var(--color-primary)' : '#ef4444' }}>
@@ -123,7 +126,7 @@ const BarChart = ({ data, series, height = 300, title }) => {
                     const barWidth = widthPerGroup / series.length;
 
                     return (
-                        <g key={index} onMouseMove={(e) => handleMouseMove(e, d)} onMouseLeave={handleMouseLeave} style={{ cursor: 'pointer' }}>
+                        <g key={index} onMouseMove={(e) => handleMouseMove(e, d, index)} onMouseLeave={handleMouseLeave} style={{ cursor: 'pointer' }}>
                             {/* Hover highlight background for the whole group */}
                             <rect
                                 x={groupX}
@@ -156,6 +159,7 @@ const BarChart = ({ data, series, height = 300, title }) => {
                                 // Para que las barras de cero no se vean raras, mínimo 1px
                                 const actualBarHeight = Math.max(barHeight, 1);
                                 const actualYPos = Math.min(yPos, padding.top + innerHeight - 1);
+                                const barColor = s.colors ? s.colors[index % s.colors.length] : s.color;
 
                                 return (
                                     <rect
@@ -164,7 +168,7 @@ const BarChart = ({ data, series, height = 300, title }) => {
                                         y={actualYPos}
                                         width={Math.max(barWidth - 4, 2)}
                                         height={actualBarHeight}
-                                        fill={s.color}
+                                        fill={barColor}
                                         rx="3" // Rounded corners
                                         ry="3"
                                         style={{ transition: 'all 0.3s ease-out' }}
