@@ -252,13 +252,11 @@ const Stats = () => {
                 </div>
             </div>
 
-            <Card title="Comparativa Económica Anual (Bruto vs Neto vs Gastos)" style={{ marginBottom: '2rem' }}>
+            <Card title="Comparativa Económica Anual (Ingresos Netos)" style={{ marginBottom: '2rem' }}>
                 <BarChart
                     data={barChartData}
                     series={[
-                        { key: 'gross', label: 'Ingresos Brutos', color: '#cbd5e1' }, // Gris claro o dorado
-                        { key: 'net', label: 'Ingresos Netos', color: 'var(--color-primary)' }, // Verde
-                        { key: 'expenses', label: 'Gastos Estructura', color: '#ef4444' } // Rojo
+                        { key: 'net', label: 'Ingresos Netos', color: 'var(--color-primary)' } // Verde
                     ]}
                 />
             </Card>
