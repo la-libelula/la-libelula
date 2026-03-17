@@ -24,8 +24,28 @@ const BarChart = ({ data, series, height = 300, title }) => {
     const handleMouseMove = (e, d, index) => {
         if (!containerRef.current) return;
         const rect = containerRef.current.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        
+        // Basic cursor positions relative to container
+        let x = e.clientX - rect.left;
+        let y = e.clientY - rect.top;
+
+        // Tooltip dimensions (approximate)
+        const tooltipWidth = 160; 
+        const tooltipHeight = 120; // Height without Beneficio Total
+
+        // Prevent cutting off on the right edge (e.g. November/December)
+        if (x + (tooltipWidth / 2) > rect.width) {
+            x = rect.width - (tooltipWidth / 2) - 10;
+        }
+        // Prevent cutting off on the left edge
+        if (x - (tooltipWidth / 2) < 0) {
+            x = (tooltipWidth / 2) + 10;
+        }
+
+        // Prevent cutting off on the top edge (e.g. very tall bars)
+        if (y - tooltipHeight < 0) {
+            y = tooltipHeight + 10;
+        }
 
         setTooltip({
             show: true,
@@ -58,12 +78,6 @@ const BarChart = ({ data, series, height = 300, title }) => {
                             </div>
                         );
                     })}
-                    <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px dotted #ccc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#555', fontWeight: 600 }}>Beneficio Total:</span>
-                        <strong style={{ color: (d.net - d.expenses) >= 0 ? 'var(--color-primary)' : '#ef4444' }}>
-                            {((d.net || 0) - (d.expenses || 0)).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
-                        </strong>
-                    </div>
                 </div>
             )
         });
