@@ -4,10 +4,13 @@ import Card from '../components/ui/Card';
 import { HOUSES } from '../utils/constants';
 import { ArrowUpRight, ArrowDownRight, Wallet, Calendar, TrendingUp } from 'lucide-react';
 import { format, startOfYear, endOfYear, parseISO } from 'date-fns';
+import BookingForm from '../components/bookings/BookingForm';
 
 const Dashboard = () => {
     const { bookings, expenses, loading } = useApp();
     const currentYear = new Date().getFullYear();
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [selectedBooking, setSelectedBooking] = useState(null);
 
     const stats = useMemo(() => {
         const start = startOfYear(new Date());
@@ -128,7 +131,15 @@ const Dashboard = () => {
                         .sort((a, b) => parseDateHelper(a.checkIn) - parseDateHelper(b.checkIn))
                         .slice(0, 5)
                         .map(b => (
-                            <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid var(--color-border)' }}>
+                            <div 
+                                key={b.id} 
+                                style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid var(--color-border)', cursor: 'pointer' }}
+                                onClick={() => {
+                                    setSelectedBooking(b);
+                                    setIsFormOpen(true);
+                                }}
+                                className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                            >
                                 <div>
                                     <div style={{ fontWeight: 500 }}>{b.guestName}</div>
                                     <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{b.checkIn} - {HOUSES.find(h => h.id === b.houseId)?.name}</div>
@@ -141,6 +152,14 @@ const Dashboard = () => {
                     {(!bookings || bookings.filter(b => b.checkIn && parseDateHelper(b.checkIn) >= new Date()).length === 0) && <p style={{ color: 'var(--color-text-muted)' }}>No hay reservas próximas.</p>}
                 </Card>
             </div>
+            <BookingForm 
+                isOpen={isFormOpen} 
+                onClose={() => {
+                    setIsFormOpen(false);
+                    setSelectedBooking(null);
+                }} 
+                booking={selectedBooking} 
+            />
         </div>
     );
 };
