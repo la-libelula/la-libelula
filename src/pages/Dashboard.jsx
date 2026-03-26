@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import Card from '../components/ui/Card';
 import { HOUSES } from '../utils/constants';
-import { ArrowUpRight, ArrowDownRight, Wallet, Calendar, TrendingUp } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Wallet, Calendar, TrendingUp, X } from 'lucide-react';
 import { format, startOfYear, endOfYear, parseISO } from 'date-fns';
 import BookingForm from '../components/bookings/BookingForm';
 
@@ -152,14 +152,54 @@ const Dashboard = () => {
                     {(!bookings || bookings.filter(b => b.checkIn && parseDateHelper(b.checkIn) >= new Date()).length === 0) && <p style={{ color: 'var(--color-text-muted)' }}>No hay reservas próximas.</p>}
                 </Card>
             </div>
-            <BookingForm 
-                isOpen={isFormOpen} 
-                onClose={() => {
-                    setIsFormOpen(false);
-                    setSelectedBooking(null);
-                }} 
-                booking={selectedBooking} 
-            />
+
+            {/* Modal Overlay for Form */}
+            {isFormOpen && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 200
+                }}>
+                    <div style={{
+                        backgroundColor: 'var(--color-surface)',
+                        borderRadius: 'var(--radius-lg)',
+                        padding: '2rem',
+                        width: '100%',
+                        maxWidth: '600px',
+                        maxHeight: '90vh',
+                        overflowY: 'auto',
+                        position: 'relative'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                            <h3 style={{ margin: 0 }}>Editar Reserva</h3>
+                            <button
+                                onClick={() => {
+                                    setIsFormOpen(false);
+                                    setSelectedBooking(null);
+                                }}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', padding: 0 }}
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <BookingForm
+                            onClose={() => {
+                                setIsFormOpen(false);
+                                setSelectedBooking(null);
+                            }}
+                            initialData={selectedBooking}
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
