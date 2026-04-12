@@ -33,6 +33,17 @@ const normalizeDate = (dateStr) => {
 };
 
 /**
+ * Checks if an event is a real guest booking vs just an administrative block.
+ */
+const isRealBooking = (summary) => {
+  if (!summary) return true;
+  const s = summary.toUpperCase();
+  // Filter out common "blocked" strings from platforms
+  const skipKeywords = ['CLOSED', 'NOT AVAILABLE', 'NO AVAILABLE', 'BLOQUEADO', 'CERRADO', 'UNAVAILABLE'];
+  return !skipKeywords.some(key => s.includes(key));
+};
+
+/**
  * Fallback regex-based iCal parser if ICAL.js fails or module issues occur.
  */
 const manualParseIcal = (icsData, houseId, channelId) => {
@@ -46,7 +57,10 @@ const manualParseIcal = (icsData, houseId, channelId) => {
     const summaryMatch = block.match(/SUMMARY:(.*)/);
     const uidMatch = block.match(/UID:(.*)/);
 
-    if (dtStartMatch && dtEndMatch) {
+    const summary = summaryMatch ? summaryMatch[1].trim() : '';
+    
+    // Only add if it's a real booking
+    if (dtStartMatch && dtEndMatch && isRealBooking(summary)) {
       const checkIn = normalizeDate(dtStartMatch[1]);
       const checkOut = normalizeDate(dtEndMatch[1]);
       const uid = uidMatch ? uidMatch[1].trim() : `manual-${Math.random()}`;
@@ -55,7 +69,7 @@ const manualParseIcal = (icsData, houseId, channelId) => {
         id: `sync-manual-${channelId}-${uid}-${checkIn}`,
         houseId,
         channelId,
-        guestName: summaryMatch ? summaryMatch[1].trim() : (channelId === 'airbnb' ? 'Reserva Airbnb' : 'Reserva Booking'),
+        guestName: summary || (channelId === 'airbnb' ? 'Reserva Airbnb' : 'Reserva Booking'),
         checkIn,
         checkOut,
         isExternal: true,
@@ -81,6 +95,9 @@ export const parseIcal = (icsData, houseId, channelId) => {
         return vevents.map(vevent => {
           const event = new ICAL.Event(vevent);
           if (!event.startDate || !event.endDate) return null;
+          
+          const summary = event.summary || '';
+          if (!isRealBooking(summary)) return null;
 
           const checkIn = normalizeDate(event.startDate.toString());
           const checkOut = normalizeDate(event.endDate.toString());
@@ -89,7 +106,7 @@ export const parseIcal = (icsData, houseId, channelId) => {
             id: `sync-${channelId}-${event.uid}-${checkIn}`,
             houseId,
             channelId,
-            guestName: event.summary || (channelId === 'airbnb' ? 'Reserva Airbnb' : 'Reserva Booking'),
+            guestName: summary || (channelId === 'airbnb' ? 'Reserva Airbnb' : 'Reserva Booking'),
             checkIn,
             checkOut,
             isExternal: true,
