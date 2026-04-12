@@ -197,9 +197,17 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                         top: '4px',
                                         left: '4px',
                                         zIndex: 10,
-                                        opacity: 0.8
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        width: '14px',
+                                        height: '14px',
+                                        backgroundColor: 'white',
+                                        borderRadius: '50%',
+                                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                                        border: '1px solid var(--color-border)'
                                     }}>
-                                        <Globe size={10} color="var(--color-primary)" />
+                                        <Globe size={9} color="var(--color-primary)" />
                                     </div>
                                 )}
 
@@ -354,7 +362,7 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                 borderTop: '1px solid var(--color-border-light)',
                 backgroundColor: 'var(--color-background)'
             }}>
-                <span>Sincronización v26</span>
+                <span>Sincronización v27</span>
                 <span>{bookings.filter(b => b.isExternal).length} reservas externas detectadas</span>
             </div>
         </div>
