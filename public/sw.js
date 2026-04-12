@@ -1,4 +1,4 @@
-const CACHE_NAME = 'la-libelula-v30-recovery';
+const CACHE_NAME = 'la-libelula-v1';
 const ASSETS = [
     '/',
     '/index.html',

@@ -14,11 +14,11 @@ import {
     parseISO
 } from 'date-fns';
 import { es } from 'date-fns/locale'; // Spanish locale
-import { ChevronLeft, ChevronRight, RefreshCw, Globe } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
-    const { houses, isSyncing, syncExternal } = useApp();
+    const { houses } = useApp();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDay, setSelectedDay] = useState(null);
 
@@ -48,16 +48,12 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
             const start = parseISO(b.checkIn);
             const end = parseISO(b.checkOut);
 
-            // Una reserva ocupa las noches entre el checkIn y el checkOut.
-            // La última "noche" es el día anterior al checkOut.
-            // Por tanto, mostramos la barra desde el día de checkIn hasta el día ANTERIOR al checkOut.
             return (isWithinInterval(day, { start, end }) || isSameDay(day, start)) && !isSameDay(day, end);
         }).map(booking => {
             const start = parseISO(booking.checkIn);
             const end = parseISO(booking.checkOut);
             const isStart = isSameDay(day, start);
 
-            // Calculamos el día anterior al checkOut para saber si es el "final" visual de la barra de noches
             const lastNight = new Date(end);
             lastNight.setDate(lastNight.getDate() - 1);
             const isEnd = isSameDay(day, lastNight);
@@ -72,7 +68,6 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
     };
 
     const handleCellClick = (dayItem, e) => {
-        // Toggle selection
         if (selectedDay && isSameDay(dayItem, selectedDay)) {
             setSelectedDay(null);
         } else {
@@ -104,37 +99,9 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                 <h2 style={{ fontSize: '1.1rem', fontFamily: 'var(--font-serif)', fontWeight: 800, letterSpacing: '0.02em', textTransform: 'capitalize', margin: 0, color: 'white' }}>
                     {format(currentDate, 'MMMM yyyy', { locale: es })}
                 </h2>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); syncExternal(); }} 
-                        disabled={isSyncing}
-                        style={{ 
-                            background: 'none', 
-                            border: 'none', 
-                            color: 'white', 
-                            cursor: isSyncing ? 'default' : 'pointer', 
-                            padding: '0.4rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            opacity: isSyncing ? 0.5 : 1
-                        }}
-                        title="Sincronizar calendarios externos"
-                    >
-                        <RefreshCw size={18} className={isSyncing ? 'animate-spin' : ''} />
-                    </button>
-                    <button onClick={nextMonth} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '0.4rem' }}>
-                        <ChevronRight size={20} />
-                    </button>
-                </div>
-                <style>{`
-                    @keyframes spin {
-                        from { transform: rotate(0deg); }
-                        to { transform: rotate(360deg); }
-                    }
-                    .animate-spin {
-                        animation: spin 1s linear infinite;
-                    }
-                `}</style>
+                <button onClick={nextMonth} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '0.4rem' }}>
+                    <ChevronRight size={20} />
+                </button>
             </div>
 
             {/* Calendar Grid */}
@@ -171,9 +138,6 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                         const isOutside = !isSameMonth(dayItem, monthStart);
                         const isToday = isSameDay(dayItem, new Date());
                         const isSelected = selectedDay && isSameDay(dayItem, selectedDay);
-                        
-                        // FUERZA BRUTA v30: Si hay CUALQUIER carga externa, mostrar globo azul (limpio)
-                        const hasRelevantSync = dayBookings.some(b => b.isExternal);
 
                         return (
                             <div
@@ -182,21 +146,6 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                 onClick={(e) => handleCellClick(dayItem, e)}
                                 style={{ position: 'relative' }}
                             >
-                                {/* Icono del mundo azul arriba a la izquierda si hay sincronización relevante */}
-                                {hasRelevantSync && (
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: '4px',
-                                        left: '4px',
-                                        zIndex: 100,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }} title="Sincronizado con plataforma externa">
-                                        <Globe size={11} color="#2563eb" />
-                                    </div>
-                                )}
-
                                 <div className="calendar-cell-day" style={{
                                     color: isToday ? 'var(--color-primary)' : 'inherit',
                                     fontWeight: isToday ? 'bold' : 'normal',
@@ -219,7 +168,7 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                         display: 'flex',
                                         flexDirection: 'column',
                                         justifyContent: isSelected ? 'flex-start' : 'center',
-                                        gap: isSelected ? '4px' : '4px',
+                                        gap: '4px',
                                         padding: isSelected ? '4px 0' : '1px 0',
                                         width: '100%',
                                         marginTop: 'auto',
@@ -231,17 +180,6 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                 const house = houses.find(h => h.id === (booking.house_id || booking.houseId));
                                                 const color = house?.color === 'secondary' ? 'var(--color-secondary)' : 'var(--color-primary)';
                                                 
-                                                let shouldShowSyncInList = booking.isExternal;
-                                                if (booking.isExternal && booking.isBlock) {
-                                                    const manualOverlap = dayBookings.find(b => !b.isExternal && (b.house_id || b.houseId) === (booking.house_id || booking.houseId));
-                                                    if (manualOverlap) shouldShowSyncInList = false;
-                                                }
-
-                                                if (booking.isExternal && booking.isBlock) {
-                                                    const manualOverlap = dayBookings.find(b => !b.isExternal && (b.house_id || b.houseId) === (booking.house_id || booking.houseId));
-                                                    if (manualOverlap) return null;
-                                                }
-
                                                 return (
                                                     <div
                                                         key={booking.id}
@@ -250,53 +188,37 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                             backgroundColor: color,
                                                             margin: '0 4px',
                                                             borderRadius: '4px',
-                                                            border: shouldShowSyncInList ? '1px solid white' : 'none',
                                                             position: 'relative',
                                                             display: 'flex',
                                                             alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            gap: '4px'
+                                                            justifyContent: 'center'
                                                         }}
-                                                        title={`${house?.name} - ${booking.guestName}${booking.isExternal ? ' (Sincronizado)' : ''}`}
+                                                        title={`${house?.name} - ${booking.guestName}`}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             onBookingClick && onBookingClick(booking);
                                                         }}
                                                     >
-                                                        {shouldShowSyncInList && <Globe size={10} color="white" />}
                                                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                             {booking.guestName}
                                                         </span>
                                                     </div>
                                                 );
-                                            }).filter(b => b !== null)
+                                            })
                                         ) : (
                                             ['gredos', 'valles'].map(houseId => {
                                                 const laneBookings = dayBookings.filter(b => (b.house_id || b.houseId) === houseId);
                                                 if (laneBookings.length === 0) return <div key={houseId} style={{ height: '8px' }} />;
 
-                                                 const manualBooking = laneBookings.find(b => !b.isExternal);
-                                                 const externalBooking = laneBookings.find(b => b.isExternal);
-                                                 const isPlatformBlock = externalBooking?.isBlock && !manualBooking;
-                                                 const isSyncedVisually = externalBooking && (!externalBooking.isBlock || !manualBooking);
-
-                                                 const booking = manualBooking || (isPlatformBlock ? externalBooking : (externalBooking && !externalBooking.isBlock ? externalBooking : null));
-                                                 
-                                                 if (!booking) return <div key={houseId} style={{ height: '8px' }} />;
-
+                                                 const booking = laneBookings[0];
                                                  const house = houses.find(h => h.id === houseId);
-                                                 const color = isPlatformBlock 
-                                                     ? '#94a3b8' 
-                                                     : (house?.color === 'secondary' ? 'var(--color-secondary)' : 'var(--color-primary)');
+                                                 const color = house?.color === 'secondary' ? 'var(--color-secondary)' : 'var(--color-primary)';
 
                                                  return (
                                                      <div
                                                          key={booking.id}
-                                                         className={`calendar-booking-bar ${isSyncedVisually ? 'is-synced' : ''}`}
+                                                         className="calendar-booking-bar"
                                                          style={{
-                                                             background: isPlatformBlock 
-                                                                ? 'repeating-linear-gradient(45deg, #cbd5e1, #cbd5e1 5px, #94a3b8 5px, #94a3b8 10px)'
-                                                                : color,
                                                              backgroundColor: color,
                                                              height: '8px',
                                                              width: '100%',
@@ -306,8 +228,7 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                              borderBottomLeftRadius: booking.isStart ? '10px' : '0',
                                                              borderTopRightRadius: booking.isEnd ? '10px' : '0',
                                                              borderBottomRightRadius: booking.isEnd ? '10px' : '0',
-                                                             opacity: isPlatformBlock ? 0.5 : (booking.isExternal ? 0.7 : 0.9),
-                                                             border: (isSyncedVisually && booking.isExternal) ? '1px solid white' : 'none',
+                                                             opacity: 0.9,
                                                              boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
                                                              display: 'flex',
                                                              alignItems: 'center',
@@ -315,7 +236,7 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                              overflow: 'hidden',
                                                              position: 'relative'
                                                          }}
-                                                         title={`${booking.guestName}${isSyncedVisually ? ' (Sincronizado)' : ''}`}
+                                                         title={booking.guestName}
                                                      />
                                                  );
                                              })
@@ -325,44 +246,6 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                             </div>
                         );
                     })}
-                </div>
-            </div>
-            {/* Grid Footer / Debug */}
-            <div style={{
-                padding: '8px 12px',
-                fontSize: '0.7rem',
-                display: 'flex',
-                justifyContent: 'space-between',
-                color: 'var(--color-text-muted)',
-                borderTop: '1px solid var(--color-border-light)',
-                backgroundColor: 'var(--color-background)',
-                flexDirection: 'column',
-                gap: '8px'
-            }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Sincronización v30</span>
-                    <span>{bookings.filter(b => b.isExternal).length} detectadas</span>
-                </div>
-                
-                <div style={{ 
-                    borderTop: '1px dashed var(--color-border)', 
-                    paddingTop: '6px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '2px'
-                }}>
-                    <strong style={{ fontSize: '0.65rem', marginBottom: '4px' }}>Diagnóstico de carga (últimas 5):</strong>
-                    {bookings
-                        .filter(b => b.isExternal)
-                        .slice(0, 5)
-                        .map((b, i) => (
-                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', opacity: 0.8 }}>
-                                <span>- {b.guestName || 'Sin nombre'}</span>
-                                <span>{b.isBlock ? '(Bloque)' : '(Reserva)'}</span>
-                            </div>
-                        ))
-                    }
-                    {bookings.filter(b => b.isExternal).length === 0 && <span>No se detectan reservas externas hoy.</span>}
                 </div>
             </div>
         </div>
