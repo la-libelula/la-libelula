@@ -246,52 +246,60 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                 const laneBookings = dayBookings.filter(b => (b.house_id || b.houseId) === houseId);
                                                 if (laneBookings.length === 0) return <div key={houseId} style={{ height: '8px' }} />;
 
-                                                // Priorizamos la manual para la información, pero detectamos si hay sincronizada
-                                                const manualBooking = laneBookings.find(b => !b.isExternal);
-                                                const externalBooking = laneBookings.find(b => b.isExternal);
-                                                
-                                                const booking = manualBooking || externalBooking;
-                                                const house = houses.find(h => h.id === houseId);
-                                                const color = house?.color === 'secondary' ? 'var(--color-secondary)' : 'var(--color-primary)';
+                                                 // Priorizamos la manual para la información, pero detectamos si hay sincronizada
+                                                 const manualBooking = laneBookings.find(b => !b.isExternal);
+                                                 const externalBooking = laneBookings.find(b => b.isExternal);
+                                                 const isPlatformBlock = externalBooking?.isBlock && !manualBooking;
+                                                 
+                                                 const booking = manualBooking || externalBooking;
+                                                 const house = houses.find(h => h.id === houseId);
+                                                 
+                                                 // Si es un bloqueo de plataforma y no hay reserva manual, usamos un gris suave
+                                                 const color = isPlatformBlock 
+                                                     ? '#94a3b8' 
+                                                     : (house?.color === 'secondary' ? 'var(--color-secondary)' : 'var(--color-primary)');
 
-                                                return (
-                                                    <div
-                                                        key={booking.id}
-                                                        className={`calendar-booking-bar ${externalBooking ? 'is-synced' : ''}`}
-                                                        style={{
-                                                            backgroundColor: color,
-                                                            height: '8px',
-                                                            width: '100%',
-                                                            marginLeft: booking.isStart ? '15%' : '0',
-                                                            marginRight: booking.isEnd ? '15%' : '0',
-                                                            borderTopLeftRadius: booking.isStart ? '10px' : '0',
-                                                            borderBottomLeftRadius: booking.isStart ? '10px' : '0',
-                                                            borderTopRightRadius: booking.isEnd ? '10px' : '0',
-                                                            borderBottomRightRadius: booking.isEnd ? '10px' : '0',
-                                                            opacity: booking.isExternal ? 0.7 : 0.9,
-                                                            border: externalBooking ? '1px solid white' : 'none',
-                                                            boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            overflow: 'hidden',
-                                                            position: 'relative'
-                                                        }}
-                                                        title={`${booking.guestName}${externalBooking ? ' (Sincronizado con plataforma)' : ''}`}
-                                                    >
-                                                        {externalBooking && (
-                                                            <Globe 
-                                                                size={6} 
-                                                                color="white" 
-                                                                style={{ 
-                                                                    opacity: 0.9,
-                                                                    position: 'absolute',
-                                                                    right: booking.isEnd ? '20%' : '2px'
-                                                                }} 
-                                                            />
-                                                        )}
-                                                    </div>
-                                                );
+                                                 return (
+                                                     <div
+                                                         key={booking.id}
+                                                         className={`calendar-booking-bar ${externalBooking ? 'is-synced' : ''}`}
+                                                         style={{
+                                                             background: isPlatformBlock 
+                                                                ? 'repeating-linear-gradient(45deg, #cbd5e1, #cbd5e1 5px, #94a3b8 5px, #94a3b8 10px)'
+                                                                : color,
+                                                             backgroundColor: color,
+                                                             height: '8px',
+                                                             width: '100%',
+                                                             marginLeft: booking.isStart ? '15%' : '0',
+                                                             marginRight: booking.isEnd ? '15%' : '0',
+                                                             borderTopLeftRadius: booking.isStart ? '10px' : '0',
+                                                             borderBottomLeftRadius: booking.isStart ? '10px' : '0',
+                                                             borderTopRightRadius: booking.isEnd ? '10px' : '0',
+                                                             borderBottomRightRadius: booking.isEnd ? '10px' : '0',
+                                                             opacity: isPlatformBlock ? 0.5 : (booking.isExternal ? 0.7 : 0.9),
+                                                             border: externalBooking ? '1px solid white' : 'none',
+                                                             boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                                                             display: 'flex',
+                                                             alignItems: 'center',
+                                                             justifyContent: 'center',
+                                                             overflow: 'hidden',
+                                                             position: 'relative'
+                                                         }}
+                                                         title={`${booking.guestName}${externalBooking ? ' (Sincronizado con plataforma)' : ''}`}
+                                                     >
+                                                         {externalBooking && (
+                                                             <Globe 
+                                                                 size={8} 
+                                                                 color="white" 
+                                                                 style={{ 
+                                                                     opacity: 1,
+                                                                     position: 'absolute',
+                                                                     zIndex: 10
+                                                                 }} 
+                                                             />
+                                                         )}
+                                                     </div>
+                                                 );
                                             })
                                         )}
                                     </div>

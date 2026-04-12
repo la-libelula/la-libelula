@@ -35,12 +35,15 @@ const normalizeDate = (dateStr) => {
 /**
  * Checks if an event is a real guest booking vs just an administrative block.
  */
-const isRealBooking = (summary) => {
-  if (!summary) return true;
+const getSyncStatus = (summary) => {
+  if (!summary) return { isBlock: false, name: '' };
   const s = summary.toUpperCase();
-  // Filter out common "blocked" strings from platforms
   const skipKeywords = ['CLOSED', 'NOT AVAILABLE', 'NO AVAILABLE', 'BLOQUEADO', 'CERRADO', 'UNAVAILABLE'];
-  return !skipKeywords.some(key => s.includes(key));
+  const isBlock = skipKeywords.some(key => s.includes(key));
+  return { 
+    isBlock, 
+    name: isBlock ? 'Bloqueo (Plataforma)' : summary 
+  };
 };
 
 /**
@@ -57,10 +60,10 @@ const manualParseIcal = (icsData, houseId, channelId) => {
     const summaryMatch = block.match(/SUMMARY:(.*)/);
     const uidMatch = block.match(/UID:(.*)/);
 
-    const summary = summaryMatch ? summaryMatch[1].trim() : '';
+    const summaryText = summaryMatch ? summaryMatch[1].trim() : '';
+    const { isBlock, name } = getSyncStatus(summaryText);
     
-    // Only add if it's a real booking
-    if (dtStartMatch && dtEndMatch && isRealBooking(summary)) {
+    if (dtStartMatch && dtEndMatch) {
       const checkIn = normalizeDate(dtStartMatch[1]);
       const checkOut = normalizeDate(dtEndMatch[1]);
       const uid = uidMatch ? uidMatch[1].trim() : `manual-${Math.random()}`;
@@ -69,10 +72,11 @@ const manualParseIcal = (icsData, houseId, channelId) => {
         id: `sync-manual-${channelId}-${uid}-${checkIn}`,
         houseId,
         channelId,
-        guestName: summary || (channelId === 'airbnb' ? 'Reserva Airbnb' : 'Reserva Booking'),
+        guestName: name || (channelId === 'airbnb' ? 'Reserva Airbnb' : 'Reserva Booking'),
         checkIn,
         checkOut,
         isExternal: true,
+        isBlock,
         status: 'confirmed'
       });
     }
@@ -96,8 +100,7 @@ export const parseIcal = (icsData, houseId, channelId) => {
           const event = new ICAL.Event(vevent);
           if (!event.startDate || !event.endDate) return null;
           
-          const summary = event.summary || '';
-          if (!isRealBooking(summary)) return null;
+          const { isBlock, name } = getSyncStatus(event.summary);
 
           const checkIn = normalizeDate(event.startDate.toString());
           const checkOut = normalizeDate(event.endDate.toString());
@@ -106,10 +109,11 @@ export const parseIcal = (icsData, houseId, channelId) => {
             id: `sync-${channelId}-${event.uid}-${checkIn}`,
             houseId,
             channelId,
-            guestName: summary || (channelId === 'airbnb' ? 'Reserva Airbnb' : 'Reserva Booking'),
+            guestName: name || (channelId === 'airbnb' ? 'Reserva Airbnb' : 'Reserva Booking'),
             checkIn,
             checkOut,
             isExternal: true,
+            isBlock,
             status: 'confirmed'
           };
         }).filter(b => b !== null);
@@ -138,7 +142,9 @@ export const fetchCalendar = async (url, houseId, channelId) => {
   for (const proxy of PROXIES) {
     try {
       console.log(`[Sync] Trying proxy ${proxy} for ${channelId}`);
-      const response = await fetch(`${proxy}${encodeURIComponent(cleanUrl)}`);
+      // Adding version to bypass cache
+      const cacheBust = `&v=${Date.now()}`;
+      const response = await fetch(`${proxy}${encodeURIComponent(cleanUrl + cacheBust)}`);
       
       if (!response.ok) continue;
       
