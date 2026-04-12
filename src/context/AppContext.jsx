@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { db_viajeros } from '../lib/firebase_viajeros';
+import { collection, addDoc } from 'firebase/firestore';
 import { HOUSES, CHANNELS } from '../utils/constants';
 
 const AppContext = createContext();
@@ -123,6 +125,57 @@ export const AppProvider = ({ children }) => {
         else fetchData();
     };
 
+    const sendToViajeros = async (booking) => {
+        try {
+            // Mapeo de casa a código de establecimiento
+            const houseCodes = {
+                'gredos': '0000376379',
+                'valles': '0000375938'
+            };
+
+            const houseCode = houseCodes[booking.houseId] || '';
+            if (!houseCode) throw new Error('Código de casa no encontrado');
+
+            // Generar referencia (AAAAMMDDx, donde x es G o V)
+            const refDate = booking.checkIn.replace(/-/g, '');
+            const houseLetter = booking.houseId === 'gredos' ? 'G' : 'V';
+            const referencia = `${refDate}${houseLetter}`;
+
+            // Fecha de contrato (creación original en Supabase)
+            // Si por algún motivo no tiene created_at, usamos hoy como backup
+            const fechaContrato = booking.created_at 
+                ? new Date(booking.created_at).toISOString().split('T')[0] 
+                : new Date().toISOString().split('T')[0];
+
+            // Mapeo de Tipo de Pago
+            let tipoPago = 'TRANS'; // Por defecto transferencia
+            if (['booking', 'airbnb'].includes(booking.channelId)) {
+                tipoPago = 'PLATF'; // Plataforma para externas
+            }
+
+            const registrationData = {
+                referencia,
+                codigoEstablecimiento: houseCode,
+                fechaContrato,
+                fechaEntrada: booking.checkIn,
+                fechaSalida: booking.checkOut,
+                numPersonas: 8, // Valor por defecto solicitado
+                numHabitaciones: booking.houseId === 'gredos' ? 5 : 4,
+                titular: booking.guestName,
+                tipoPago,
+                fechaPago: fechaContrato,
+                medioPago: 'Sincronizado desde Gestión',
+                created_at: new Date().toISOString()
+            };
+
+            await addDoc(collection(db_viajeros, 'bookings'), registrationData);
+            return { success: true };
+        } catch (error) {
+            console.error('Error enviando a Registro:', error);
+            return { success: false, error: error.message };
+        }
+    };
+
     // Expenses Actions
     const addExpense = async (expenseData) => {
         const dbData = {
@@ -192,6 +245,7 @@ export const AppProvider = ({ children }) => {
                 updateExpense,
                 deleteExpense,
                 getHouseBookings,
+                sendToViajeros,
                 houses: HOUSES,
                 channels: CHANNELS
             }}

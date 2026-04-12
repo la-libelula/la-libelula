@@ -6,10 +6,12 @@ import Input from '../ui/Input';
 import Select from '../ui/Select';
 import DateRangePicker from '../ui/DateRangePicker';
 import { differenceInDays, parseISO } from 'date-fns';
-import { Save, X, Trash2 } from 'lucide-react';
+import { Save, X, Trash2, Send } from 'lucide-react';
 
 const BookingForm = ({ onClose, initialData = null }) => {
-    const { addBooking, updateBooking, deleteBooking, bookings } = useApp();
+    const { addBooking, updateBooking, deleteBooking, sendToViajeros, bookings } = useApp();
+    const [isSending, setIsSending] = useState(false);
+    const [sentStatus, setSentStatus] = useState(null); // 'success' | 'error' | null
 
     const [formData, setFormData] = useState({
         houseId: HOUSES[0].id,
@@ -51,6 +53,25 @@ const BookingForm = ({ onClose, initialData = null }) => {
         if (window.confirm('¿Realmente quieres anular esta reserva?')) {
             deleteBooking(initialData.id);
             onClose();
+        }
+    };
+
+    const handleSendToViajeros = async () => {
+        if (!initialData) return;
+        
+        setIsSending(true);
+        setSentStatus(null);
+        
+        const result = await sendToViajeros(initialData);
+        
+        setIsSending(false);
+        if (result.success) {
+            setSentStatus('success');
+            setTimeout(() => setSentStatus(null), 3000);
+            alert('¡Reserva enviada con éxito al sistema de Viajeros!');
+        } else {
+            setSentStatus('error');
+            alert('Error al enviar: ' + result.error);
         }
     };
 
@@ -170,9 +191,23 @@ const BookingForm = ({ onClose, initialData = null }) => {
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
                 {initialData && (
-                    <Button type="button" onClick={handleDelete} style={{ marginRight: 'auto', backgroundColor: '#ef4444', color: 'white', borderColor: '#ef4444' }}>
-                        Anular
-                    </Button>
+                    <>
+                        <Button type="button" onClick={handleDelete} style={{ marginRight: 'auto', backgroundColor: '#ef4444', color: 'white', borderColor: '#ef4444' }}>
+                            Anular
+                        </Button>
+                        <Button 
+                            type="button" 
+                            onClick={handleSendToViajeros} 
+                            disabled={isSending}
+                            icon={Send}
+                            style={{ 
+                                backgroundColor: sentStatus === 'success' ? '#10b981' : 'var(--color-secondary)',
+                                color: 'white'
+                            }}
+                        >
+                            {isSending ? 'Enviando...' : sentStatus === 'success' ? 'Enviado' : 'Enviar a Registro'}
+                        </Button>
+                    </>
                 )}
                 <Button type="button" variant="secondary" onClick={onClose}>
                     Cancelar
