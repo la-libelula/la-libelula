@@ -162,12 +162,15 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                     gap: '2px',
                                     zIndex: 5
                                 }}>
-                                    {dayBookings.map((b, i) => {
+                                    {['gredos', 'valles'].map(houseId => {
+                                        const b = dayBookings.find(db => (db.house_id || db.houseId) === houseId);
+                                        if (!b) return null;
+                                        
                                         const channelId = b.channel_id || b.channelId || 'direct';
                                         const color = CHANNEL_COLORS[channelId] || CHANNEL_COLORS.direct;
                                         return (
                                             <div 
-                                                key={i} 
+                                                key={houseId} 
                                                 style={{
                                                     width: '6px',
                                                     height: '6px',
@@ -175,7 +178,7 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                     backgroundColor: color,
                                                     boxShadow: '0 0 1px rgba(0,0,0,0.2)'
                                                 }}
-                                                title={`Canal: ${channelId}`}
+                                                title={`${houseId === 'gredos' ? 'Gredos' : 'Valles'}: ${channelId}`}
                                             />
                                         );
                                     })}
