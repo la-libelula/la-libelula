@@ -165,7 +165,8 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                     display: 'grid',
                     gridTemplateColumns: 'repeat(7, 1fr)',
                     width: '100%'
-                                  {calendarDays.map((dayItem) => {
+                }}>
+                    {calendarDays.map((dayItem) => {
                         const dayBookings = getBookingsForDay(dayItem);
                         const isOutside = !isSameMonth(dayItem, monthStart);
                         const isToday = isSameDay(dayItem, new Date());
@@ -353,10 +354,10 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                 borderTop: '1px solid var(--color-border-light)',
                 backgroundColor: 'var(--color-background)'
             }}>
-                <span>Sincronización v25</span>
+                <span>Sincronización v26</span>
                 <span>{bookings.filter(b => b.isExternal).length} reservas externas detectadas</span>
-            </div>     </div>
-        </div >
+            </div>
+        </div>
     );
 };
 

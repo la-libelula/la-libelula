@@ -18,10 +18,10 @@
   <link rel="apple-touch-icon" href="/pwa-v21-192.png" />
   <link rel="manifest" href="/libelula.webmanifest" />
   <script>
-    // NUCLEAR AUTO-RESET v25
-    const CURRENT_VERSION = "25";
+    // NUCLEAR AUTO-RESET v26
+    const CURRENT_VERSION = "26";
     if (localStorage.getItem("libelula_version") !== CURRENT_VERSION) {
-      console.log("Forcing Nuclear Reset to v25...");
+      console.log("Forcing Nuclear Reset to v26...");
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(regs => {
           for (let reg of regs) reg.unregister();
@@ -38,9 +38,9 @@
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/worker-v25.js')
+        navigator.serviceWorker.register('/worker-v26.js')
           .then(reg => {
-            console.log('SW Registered v25:', reg);
+            console.log('SW Registered v26:', reg);
           })
           .catch(err => console.error('SW Failed:', err));
       });
