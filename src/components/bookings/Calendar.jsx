@@ -17,6 +17,13 @@ import { es } from 'date-fns/locale'; // Spanish locale
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
+const CHANNEL_COLORS = {
+    booking: '#003580', // Booking.com blue
+    airbnb: '#FF5A5F',  // Airbnb red
+    web: '#22c55e',     // Web green
+    direct: '#94a3b8'    // Direct/Other gray
+};
+
 const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
     const { houses } = useApp();
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -146,6 +153,34 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                 onClick={(e) => handleCellClick(dayItem, e)}
                                 style={{ position: 'relative' }}
                             >
+                                {/* Indicadores de canal (puntos) arriba a la izquierda */}
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '4px',
+                                    left: '4px',
+                                    display: 'flex',
+                                    gap: '2px',
+                                    zIndex: 5
+                                }}>
+                                    {dayBookings.map((b, i) => {
+                                        const channelId = b.channel_id || b.channelId || 'direct';
+                                        const color = CHANNEL_COLORS[channelId] || CHANNEL_COLORS.direct;
+                                        return (
+                                            <div 
+                                                key={i} 
+                                                style={{
+                                                    width: '6px',
+                                                    height: '6px',
+                                                    borderRadius: '50%',
+                                                    backgroundColor: color,
+                                                    boxShadow: '0 0 1px rgba(0,0,0,0.2)'
+                                                }}
+                                                title={`Canal: ${channelId}`}
+                                            />
+                                        );
+                                    })}
+                                </div>
+
                                 <div className="calendar-cell-day" style={{
                                     color: isToday ? 'var(--color-primary)' : 'inherit',
                                     fontWeight: isToday ? 'bold' : 'normal',
