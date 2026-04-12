@@ -7,12 +7,18 @@ import ICAL from 'ical.js';
 
 // We use a public CORS proxy. 
 // Note: In production, it's safer to have your own proxy.
-// Using a more reliable public proxy
+// Using a larger set of reliable public proxies
 const PROXIES = [
   'https://corsproxy.io/?',
   'https://api.allorigins.win/raw?url=',
-  'https://thingproxy.freeboard.io/fetch/'
+  'https://thingproxy.freeboard.io/fetch/',
+  'https://api.codetabs.com/v1/proxy?quest=',
+  'https://proxypatch.vercel.app/api/proxy?url=',
+  'https://yacdn.org/proxy/'
 ];
+
+// Shuffle proxies to avoid hitting the same one first every time
+const getShuffledProxies = () => [...PROXIES].sort(() => Math.random() - 0.5);
 
 /**
  * Normalizes date strings to YYYY-MM-DD.
@@ -138,8 +144,9 @@ export const parseIcal = (icsData, houseId, channelId) => {
  */
 export const fetchCalendar = async (url, houseId, channelId) => {
   const cleanUrl = url.trim();
+  const shuffled = getShuffledProxies();
   
-  for (const proxy of PROXIES) {
+  for (const proxy of shuffled) {
     try {
       console.log(`[Sync] Trying proxy ${proxy} for ${channelId}`);
       // Adding version to bypass cache

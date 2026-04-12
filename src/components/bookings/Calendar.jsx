@@ -319,7 +319,7 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                 borderTop: '1px solid var(--color-border-light)',
                 backgroundColor: 'var(--color-background)'
             }}>
-                <span>Sincronización v23</span>
+                <span>Sincronización v24</span>
                 <span>{bookings.filter(b => b.isExternal).length} reservas externas detectadas</span>
             </div>
         </div >

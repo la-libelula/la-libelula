@@ -7,7 +7,11 @@ const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
     const [bookings, setBookings] = useState([]);
-    const [externalBookings, setExternalBookings] = useState([]);
+    const [externalBookings, setExternalBookings] = useState(() => {
+        // Load initial state from localStorage to show data immediately
+        const cached = localStorage.getItem('libelula_external_bookings');
+        return cached ? JSON.parse(cached) : [];
+    });
     const [expenses, setExpenses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isSyncing, setIsSyncing] = useState(false);
@@ -16,7 +20,16 @@ export const AppProvider = ({ children }) => {
         try {
             setIsSyncing(true);
             const synced = await fetchAllExternalBookings(SYNC_URLS);
-            setExternalBookings(synced);
+            
+            // SECURITY: Only update and save if we actually found data.
+            // This prevents "wiping out" the calendar if a single sync attempt fails.
+            if (synced && synced.length > 0) {
+                setExternalBookings(synced);
+                localStorage.setItem('libelula_external_bookings', JSON.stringify(synced));
+                console.log(`[Sync] Successfully updated: ${synced.length} records.`);
+            } else if (externalBookings.length > 0) {
+                console.warn('[Sync] Fetch returned 0 or failed. Keeping last known good state.');
+            }
         } catch (error) {
             console.error('Sync failed:', error);
         } finally {
