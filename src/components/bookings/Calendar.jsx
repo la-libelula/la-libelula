@@ -309,6 +309,19 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                     })}
                 </div>
             </div>
+            {/* Grid Footer / Debug */}
+            <div style={{
+                padding: '4px 8px',
+                fontSize: '10px',
+                color: 'var(--color-text-muted)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                borderTop: '1px solid var(--color-border-light)',
+                backgroundColor: 'var(--color-background)'
+            }}>
+                <span>Sincronización v23</span>
+                <span>{bookings.filter(b => b.isExternal).length} reservas externas detectadas</span>
+            </div>
         </div >
     );
 };
