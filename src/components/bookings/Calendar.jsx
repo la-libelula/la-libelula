@@ -172,15 +172,8 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                         const isToday = isSameDay(dayItem, new Date());
                         const isSelected = selectedDay && isSameDay(dayItem, selectedDay);
                         
-                        // Detectar si hay alguna sincronización relevante para enseñar el globo arriba a la izquierda
-                        const hasRelevantSync = dayBookings.some(b => {
-                            if (!b.isExternal) return false;
-                            // Si es una reserva real externa (no es un bloque), mostrar SIEMPRE el globo
-                            if (!b.isBlock) return true;
-                            // Si es solo un bloque, solo mostrar si NO hay una manual "tapándola" en la misma casa
-                            const manualInSameHouse = dayBookings.find(mb => !mb.isExternal && (mb.house_id || mb.houseId) === (b.house_id || b.houseId));
-                            return !manualInSameHouse;
-                        });
+                        // FUERZA BRUTA v29: Si hay CUALQUIER carga externa, mostrar globo dorado
+                        const hasRelevantSync = dayBookings.some(b => b.isExternal);
 
                         return (
                             <div
@@ -353,16 +346,42 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
             </div>
             {/* Grid Footer / Debug */}
             <div style={{
-                padding: '4px 8px',
-                fontSize: '10px',
-                color: 'var(--color-text-muted)',
+                padding: '8px 12px',
+                fontSize: '0.7rem',
                 display: 'flex',
                 justifyContent: 'space-between',
+                color: 'var(--color-text-muted)',
                 borderTop: '1px solid var(--color-border-light)',
-                backgroundColor: 'var(--color-background)'
+                backgroundColor: 'var(--color-background)',
+                flexDirection: 'column',
+                gap: '8px'
             }}>
-                <span>Sincronización v28</span>
-                <span>{bookings.filter(b => b.isExternal).length} reservas externas detectadas</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Sincronización v29</span>
+                    <span>{bookings.filter(b => b.isExternal).length} detectadas</span>
+                </div>
+                
+                {/* Diagnóstico v29 para que el usuario nos diga qué lee la app */}
+                <div style={{ 
+                    borderTop: '1px dashed var(--color-border)', 
+                    paddingTop: '6px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '2px'
+                }}>
+                    <strong style={{ fontSize: '0.65rem', marginBottom: '4px' }}>Diagnóstico de carga (últimas 5):</strong>
+                    {bookings
+                        .filter(b => b.isExternal)
+                        .slice(0, 5)
+                        .map((b, i) => (
+                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', opacity: 0.8 }}>
+                                <span>- {b.guestName || 'Sin nombre'}</span>
+                                <span>{b.isBlock ? '(Bloque)' : '(Reserva)'}</span>
+                            </div>
+                        ))
+                    }
+                    {bookings.filter(b => b.isExternal).length === 0 && <span>No se detectan reservas externas hoy.</span>}
+                </div>
             </div>
         </div>
     );
