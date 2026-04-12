@@ -148,7 +148,7 @@ export const AppProvider = ({ children }) => {
                 : new Date().toISOString().split('T')[0];
 
             // Mapeo de Tipo de Pago
-            let tipoPago = 'TRANS'; // Por defecto transferencia
+            let tipoPago = 'MOVIL'; // Bizum por defecto solicitado
             if (['booking', 'airbnb'].includes(booking.channelId)) {
                 tipoPago = 'PLATF'; // Plataforma para externas
             }
@@ -160,7 +160,7 @@ export const AppProvider = ({ children }) => {
                 fechaEntrada: booking.checkIn,
                 fechaSalida: booking.checkOut,
                 numPersonas: 8, // Valor por defecto solicitado
-                numHabitaciones: booking.houseId === 'gredos' ? 5 : 4,
+                numHabitaciones: 1, // Siempre 1 para alquiler íntegro
                 titular: booking.guestName,
                 tipoPago,
                 fechaPago: fechaContrato,
