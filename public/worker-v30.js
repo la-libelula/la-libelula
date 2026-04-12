@@ -1,13 +1,16 @@
-const CACHE_NAME = 'la-libelula-v30-recovery';
+const CACHE_NAME = 'la-libelula-v22';
 const ASSETS = [
     '/',
     '/index.html',
-    '/manifest.json',
-    '/favicon.png',
-    '/logo192.png',
-    '/logo512.png',
-    '/logo_premium.png',
-    '/pwa-v13.png'
+    '/libelula.webmanifest',
+    '/pwa-v21-192.png',
+    '/pwa-v21-256.png',
+    '/pwa-v21-512.png',
+    '/pwa-v21-maskable.png',
+    '/screenshot-desktop.png',
+    '/screenshot-mobile.png',
+    '/favicon.ico',
+    '/favicon.png'
 ];
 
 self.addEventListener('install', (event) => {

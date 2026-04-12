@@ -172,7 +172,7 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                         const isToday = isSameDay(dayItem, new Date());
                         const isSelected = selectedDay && isSameDay(dayItem, selectedDay);
                         
-                        // FUERZA BRUTA v29: Si hay CUALQUIER carga externa, mostrar globo dorado
+                        // FUERZA BRUTA v30: Si hay CUALQUIER carga externa, mostrar globo azul (limpio)
                         const hasRelevantSync = dayBookings.some(b => b.isExternal);
 
                         return (
@@ -182,24 +182,18 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                 onClick={(e) => handleCellClick(dayItem, e)}
                                 style={{ position: 'relative' }}
                             >
-                                {/* Icono del mundo arriba a la izquierda si hay sincronización relevante */}
+                                {/* Icono del mundo azul arriba a la izquierda si hay sincronización relevante */}
                                 {hasRelevantSync && (
                                     <div style={{
                                         position: 'absolute',
-                                        top: '2px',
-                                        left: '2px',
+                                        top: '4px',
+                                        left: '4px',
                                         zIndex: 100,
                                         display: 'flex',
                                         alignItems: 'center',
-                                        justifyContent: 'center',
-                                        width: '16px',
-                                        height: '16px',
-                                        backgroundColor: 'white',
-                                        borderRadius: '50%',
-                                        boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                                        border: '1px solid #d4af37' // Borde dorado
+                                        justifyContent: 'center'
                                     }} title="Sincronizado con plataforma externa">
-                                        <Globe size={11} color="#d4af37" />
+                                        <Globe size={11} color="#2563eb" />
                                     </div>
                                 )}
 
@@ -225,11 +219,11 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                         display: 'flex',
                                         flexDirection: 'column',
                                         justifyContent: isSelected ? 'flex-start' : 'center',
-                                        gap: isSelected ? '4px' : '4px', // Mayor hueco para 'línea imaginaria' clara
+                                        gap: isSelected ? '4px' : '4px',
                                         padding: isSelected ? '4px 0' : '1px 0',
                                         width: '100%',
                                         marginTop: 'auto',
-                                        minHeight: isSelected ? 'auto' : '18px', // Altura aumentada para mostrar bien el hueco
+                                        minHeight: isSelected ? 'auto' : '18px',
                                         position: 'relative'
                                     }}>
                                         {isSelected ? (
@@ -237,14 +231,12 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                 const house = houses.find(h => h.id === (booking.house_id || booking.houseId));
                                                 const color = house?.color === 'secondary' ? 'var(--color-secondary)' : 'var(--color-primary)';
                                                 
-                                                // Definir si mostramos el marcador de sincronización en la lista detallada
                                                 let shouldShowSyncInList = booking.isExternal;
                                                 if (booking.isExternal && booking.isBlock) {
                                                     const manualOverlap = dayBookings.find(b => !b.isExternal && (b.house_id || b.houseId) === (booking.house_id || booking.houseId));
                                                     if (manualOverlap) shouldShowSyncInList = false;
                                                 }
 
-                                                // Si es un bloque "tapado" por reserva manual, no lo mostramos en la lista para no duplicar
                                                 if (booking.isExternal && booking.isBlock) {
                                                     const manualOverlap = dayBookings.find(b => !b.isExternal && (b.house_id || b.houseId) === (booking.house_id || booking.houseId));
                                                     if (manualOverlap) return null;
@@ -279,20 +271,13 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                 );
                                             }).filter(b => b !== null)
                                         ) : (
-                                            // Mapeo por carriles fijos: Arriba Gredos, Abajo Valles
                                             ['gredos', 'valles'].map(houseId => {
-                                                // Buscamos todas las reservas de este carril para este día
                                                 const laneBookings = dayBookings.filter(b => (b.house_id || b.houseId) === houseId);
                                                 if (laneBookings.length === 0) return <div key={houseId} style={{ height: '8px' }} />;
 
-                                                 // Priorizamos la manual para la información, pero detectamos si hay sincronizada
                                                  const manualBooking = laneBookings.find(b => !b.isExternal);
                                                  const externalBooking = laneBookings.find(b => b.isExternal);
-                                                 
-                                                 // Un bloque de plataforma solo es relevante si NO hay reserva manual
                                                  const isPlatformBlock = externalBooking?.isBlock && !manualBooking;
-                                                 
-                                                 // Si hay manual y el externo es solo un bloque, ignoramos el estado "isSynced" visual en la barra
                                                  const isSyncedVisually = externalBooking && (!externalBooking.isBlock || !manualBooking);
 
                                                  const booking = manualBooking || (isPlatformBlock ? externalBooking : (externalBooking && !externalBooking.isBlock ? externalBooking : null));
@@ -300,8 +285,6 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                  if (!booking) return <div key={houseId} style={{ height: '8px' }} />;
 
                                                  const house = houses.find(h => h.id === houseId);
-                                                 
-                                                 // Si es un bloqueo de plataforma y no hay reserva manual, usamos un gris suave
                                                  const color = isPlatformBlock 
                                                      ? '#94a3b8' 
                                                      : (house?.color === 'secondary' ? 'var(--color-secondary)' : 'var(--color-primary)');
@@ -357,11 +340,10 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                 gap: '8px'
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Sincronización v29</span>
+                    <span>Sincronización v30</span>
                     <span>{bookings.filter(b => b.isExternal).length} detectadas</span>
                 </div>
                 
-                {/* Diagnóstico v29 para que el usuario nos diga qué lee la app */}
                 <div style={{ 
                     borderTop: '1px dashed var(--color-border)', 
                     paddingTop: '6px',
