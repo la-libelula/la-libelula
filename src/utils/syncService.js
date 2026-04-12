@@ -8,7 +8,29 @@ import ICAL from 'ical.js';
 // We use a public CORS proxy. 
 // Note: In production, it's safer to have your own proxy.
 // Using a more reliable public proxy
-const PROXY_URL = 'https://corsproxy.io/?';
+const PROXIES = [
+  'https://corsproxy.io/?',
+  'https://api.allorigins.win/raw?url=',
+  'https://thingproxy.freeboard.io/fetch/'
+];
+
+/**
+ * Normalizes date strings to YYYY-MM-DD.
+ * Handles: 
+ * - 20240412
+ * - 2024-04-12
+ * - 20240412T150000Z
+ * - 2024-04-12T15:00:00.000Z
+ */
+const normalizeDate = (dateStr) => {
+  if (!dateStr) return '';
+  // Remove hyphens and T/Z to get pure number sequence
+  const clean = dateStr.replace(/[-T:Z]/g, '');
+  if (clean.length >= 8) {
+    return `${clean.substring(0, 4)}-${clean.substring(4, 6)}-${clean.substring(6, 8)}`;
+  }
+  return dateStr;
+};
 
 /**
  * Fallback regex-based iCal parser if ICAL.js fails or module issues occur.
@@ -17,23 +39,20 @@ const manualParseIcal = (icsData, houseId, channelId) => {
   const events = [];
   const eventBlocks = icsData.split('BEGIN:VEVENT');
   
-  // Skip the first block (VCALENDAR header)
   for (let i = 1; i < eventBlocks.length; i++) {
     const block = eventBlocks[i];
-    const dtStartMatch = block.match(/DTSTART;?.*?[:=](\d{8})/);
-    const dtEndMatch = block.match(/DTEND;?.*?[:=](\d{8})/);
+    const dtStartMatch = block.match(/DTSTART;?.*?[:=](\d{8}(T\d{6}Z?)?)/);
+    const dtEndMatch = block.match(/DTEND;?.*?[:=](\d{8}(T\d{6}Z?)?)/);
     const summaryMatch = block.match(/SUMMARY:(.*)/);
     const uidMatch = block.match(/UID:(.*)/);
 
     if (dtStartMatch && dtEndMatch) {
-      const s = dtStartMatch[1];
-      const e = dtEndMatch[1];
-      const checkIn = `${s.substring(0, 4)}-${s.substring(4, 6)}-${s.substring(6, 8)}`;
-      const checkOut = `${e.substring(0, 4)}-${e.substring(4, 6)}-${e.substring(6, 8)}`;
-      const uid = uidMatch ? uidMatch[1].trim() : Math.random().toString();
+      const checkIn = normalizeDate(dtStartMatch[1]);
+      const checkOut = normalizeDate(dtEndMatch[1]);
+      const uid = uidMatch ? uidMatch[1].trim() : `manual-${Math.random()}`;
       
       events.push({
-        id: `sync-manual-${channelId}-${uid}`,
+        id: `sync-manual-${channelId}-${uid}-${checkIn}`,
         houseId,
         channelId,
         guestName: summaryMatch ? summaryMatch[1].trim() : (channelId === 'airbnb' ? 'Reserva Airbnb' : 'Reserva Booking'),
@@ -63,13 +82,16 @@ export const parseIcal = (icsData, houseId, channelId) => {
           const event = new ICAL.Event(vevent);
           if (!event.startDate || !event.endDate) return null;
 
+          const checkIn = normalizeDate(event.startDate.toString());
+          const checkOut = normalizeDate(event.endDate.toString());
+
           return {
-            id: `sync-${channelId}-${event.uid}-${event.startDate.toISODateString()}`,
+            id: `sync-${channelId}-${event.uid}-${checkIn}`,
             houseId,
             channelId,
             guestName: event.summary || (channelId === 'airbnb' ? 'Reserva Airbnb' : 'Reserva Booking'),
-            checkIn: event.startDate.toISODateString(),
-            checkOut: event.endDate.toISODateString(),
+            checkIn,
+            checkOut,
             isExternal: true,
             status: 'confirmed'
           };
@@ -91,28 +113,32 @@ export const parseIcal = (icsData, houseId, channelId) => {
 };
 
 /**
- * Fetches and parses a single calendar.
+ * Fetches and parses a single calendar, trying multiple proxies.
  */
 export const fetchCalendar = async (url, houseId, channelId) => {
-  try {
-    console.log(`[Sync] Fetching ${channelId} for ${houseId}...`);
-    // Cleaning URL
-    const cleanUrl = url.trim();
-    const response = await fetch(`${PROXY_URL}${encodeURIComponent(cleanUrl)}`);
-    
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const text = await response.text();
-    
-    if (!text || (!text.includes('BEGIN:VCALENDAR') && !text.includes('BEGIN:VEVENT'))) {
-      console.warn(`[Sync] Invalid content from ${channelId}. Starts with:`, text.substring(0, 100));
-      return [];
+  const cleanUrl = url.trim();
+  
+  for (const proxy of PROXIES) {
+    try {
+      console.log(`[Sync] Trying proxy ${proxy} for ${channelId}`);
+      const response = await fetch(`${proxy}${encodeURIComponent(cleanUrl)}`);
+      
+      if (!response.ok) continue;
+      
+      const text = await response.text();
+      
+      if (text && (text.includes('BEGIN:VCALENDAR') || text.includes('BEGIN:VEVENT'))) {
+        return parseIcal(text, houseId, channelId);
+      }
+      
+      console.warn(`[Sync] Proxy ${proxy} returned invalid content for ${channelId}`);
+    } catch (error) {
+      console.warn(`[Sync] Proxy ${proxy} failed for ${channelId}:`, error.message);
     }
-
-    return parseIcal(text, houseId, channelId);
-  } catch (error) {
-    console.error(`[Sync] Fetch error for ${channelId}:`, error);
-    return [];
   }
+
+  console.error(`[Sync] All proxies failed for ${channelId} - ${houseId}`);
+  return [];
 };
 
 /**
