@@ -14,11 +14,11 @@ import {
     parseISO
 } from 'date-fns';
 import { es } from 'date-fns/locale'; // Spanish locale
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
-    const { houses } = useApp();
+    const { houses, isSyncing, syncExternal } = useApp();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDay, setSelectedDay] = useState(null);
 
@@ -104,9 +104,37 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                 <h2 style={{ fontSize: '1.1rem', fontFamily: 'var(--font-serif)', fontWeight: 800, letterSpacing: '0.02em', textTransform: 'capitalize', margin: 0, color: 'white' }}>
                     {format(currentDate, 'MMMM yyyy', { locale: es })}
                 </h2>
-                <button onClick={nextMonth} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '0.4rem' }}>
-                    <ChevronRight size={20} />
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); syncExternal(); }} 
+                        disabled={isSyncing}
+                        style={{ 
+                            background: 'none', 
+                            border: 'none', 
+                            color: 'white', 
+                            cursor: isSyncing ? 'default' : 'pointer', 
+                            padding: '0.4rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            opacity: isSyncing ? 0.5 : 1
+                        }}
+                        title="Sincronizar calendarios externos"
+                    >
+                        <RefreshCw size={18} className={isSyncing ? 'animate-spin' : ''} />
+                    </button>
+                    <button onClick={nextMonth} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '0.4rem' }}>
+                        <ChevronRight size={20} />
+                    </button>
+                </div>
+                <style>{`
+                    @keyframes spin {
+                        from { transform: rotate(0deg); }
+                        to { transform: rotate(360deg); }
+                    }
+                    .animate-spin {
+                        animation: spin 1s linear infinite;
+                    }
+                `}</style>
             </div>
 
             {/* Calendar Grid */}
@@ -190,9 +218,11 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                         style={{
                                                             backgroundColor: color,
                                                             margin: '0 4px',
-                                                            borderRadius: '4px'
+                                                            borderRadius: '4px',
+                                                            border: booking.isExternal ? '2px dashed rgba(255,255,255,0.5)' : 'none',
+                                                            position: 'relative'
                                                         }}
-                                                        title={`${house?.name} - ${booking.guestName}`}
+                                                        title={`${house?.name} - ${booking.guestName}${booking.isExternal ? ' (Sincronizado)' : ''}`}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             onBookingClick && onBookingClick(booking);
@@ -225,10 +255,12 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                             borderBottomLeftRadius: booking.isStart ? '10px' : '0',
                                                             borderTopRightRadius: booking.isEnd ? '10px' : '0',
                                                             borderBottomRightRadius: booking.isEnd ? '10px' : '0',
-                                                            opacity: 0.9,
+                                                            opacity: booking.isExternal ? 0.6 : 0.9,
+                                                            borderTop: booking.isExternal ? '1px dashed white' : 'none',
+                                                            borderBottom: booking.isExternal ? '1px dashed white' : 'none',
                                                             boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
                                                         }}
-                                                        title={`${booking.guestName}`}
+                                                        title={`${booking.guestName}${booking.isExternal ? ' (Plataforma Externa)' : ''}`}
                                                     />
                                                 );
                                             })

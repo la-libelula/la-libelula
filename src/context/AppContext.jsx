@@ -1,13 +1,28 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { HOUSES, CHANNELS } from '../utils/constants';
+import { HOUSES, CHANNELS, SYNC_URLS } from '../utils/constants';
+import { fetchAllExternalBookings } from '../utils/syncService';
 
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
     const [bookings, setBookings] = useState([]);
+    const [externalBookings, setExternalBookings] = useState([]);
     const [expenses, setExpenses] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isSyncing, setIsSyncing] = useState(false);
+
+    const syncExternal = async () => {
+        try {
+            setIsSyncing(true);
+            const synced = await fetchAllExternalBookings(SYNC_URLS);
+            setExternalBookings(synced);
+        } catch (error) {
+            console.error('Sync failed:', error);
+        } finally {
+            setIsSyncing(false);
+        }
+    };
 
     const fetchData = async () => {
         try {
@@ -82,6 +97,7 @@ export const AppProvider = ({ children }) => {
 
     useEffect(() => {
         fetchData();
+        syncExternal();
     }, []);
 
     // Bookings Actions
@@ -182,9 +198,11 @@ export const AppProvider = ({ children }) => {
     return (
         <AppContext.Provider
             value={{
-                bookings: adaptedBookings,
+                bookings: [...adaptedBookings, ...externalBookings],
                 expenses: adaptedExpenses,
                 loading,
+                isSyncing,
+                syncExternal,
                 addBooking,
                 updateBooking,
                 deleteBooking,
