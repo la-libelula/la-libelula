@@ -219,8 +219,12 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                             backgroundColor: color,
                                                             margin: '0 4px',
                                                             borderRadius: '4px',
-                                                            border: booking.isExternal ? '2px dashed rgba(255,255,255,0.5)' : 'none',
-                                                            position: 'relative'
+                                                            border: booking.isExternal ? '1px solid white' : 'none',
+                                                            position: 'relative',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            gap: '4px'
                                                         }}
                                                         title={`${house?.name} - ${booking.guestName}${booking.isExternal ? ' (Sincronizado)' : ''}`}
                                                         onClick={(e) => {
@@ -228,7 +232,10 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                             onBookingClick && onBookingClick(booking);
                                                         }}
                                                     >
-                                                        {booking.guestName}
+                                                        {booking.isExternal && <Globe size={10} color="white" />}
+                                                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                            {booking.guestName}
+                                                        </span>
                                                     </div>
                                                 );
                                             })
