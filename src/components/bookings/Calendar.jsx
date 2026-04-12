@@ -246,7 +246,10 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                         key={booking.id}
                                                         className="calendar-booking-bar"
                                                         style={{
-                                                            backgroundColor: color,
+                                                            background: booking.isExternal 
+                                                                ? `repeating-linear-gradient(45deg, ${color}, ${color} 5px, rgba(255,255,255,0.1) 5px, rgba(255,255,255,0.1) 10px)`
+                                                                : color,
+                                                            backgroundColor: color, // Fallback
                                                             height: '6px',
                                                             width: '100%',
                                                             marginLeft: booking.isStart ? '15%' : '0',
@@ -255,10 +258,10 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                             borderBottomLeftRadius: booking.isStart ? '10px' : '0',
                                                             borderTopRightRadius: booking.isEnd ? '10px' : '0',
                                                             borderBottomRightRadius: booking.isEnd ? '10px' : '0',
-                                                            opacity: booking.isExternal ? 0.6 : 0.9,
-                                                            borderTop: booking.isExternal ? '1px dashed white' : 'none',
-                                                            borderBottom: booking.isExternal ? '1px dashed white' : 'none',
-                                                            boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                                                            opacity: booking.isExternal ? 0.7 : 0.9,
+                                                            border: booking.isExternal ? '1.5px dashed white' : 'none',
+                                                            boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                                                            boxSizing: 'border-box'
                                                         }}
                                                         title={`${booking.guestName}${booking.isExternal ? ' (Plataforma Externa)' : ''}`}
                                                     />
