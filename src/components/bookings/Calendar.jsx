@@ -14,7 +14,7 @@ import {
     parseISO
 } from 'date-fns';
 import { es } from 'date-fns/locale'; // Spanish locale
-import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw, Globe } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
@@ -235,22 +235,25 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                         ) : (
                                             // Mapeo por carriles fijos: Arriba Gredos, Abajo Valles
                                             ['gredos', 'valles'].map(houseId => {
-                                                const booking = dayBookings.find(b => (b.house_id || b.houseId) === houseId);
-                                                if (!booking) return <div key={houseId} style={{ height: '6px' }} />; // Espacio vacío para mantener el carril
+                                                // Buscamos todas las reservas de este carril para este día
+                                                const laneBookings = dayBookings.filter(b => (b.house_id || b.houseId) === houseId);
+                                                if (laneBookings.length === 0) return <div key={houseId} style={{ height: '8px' }} />;
 
+                                                // Priorizamos la manual para la información, pero detectamos si hay sincronizada
+                                                const manualBooking = laneBookings.find(b => !b.isExternal);
+                                                const externalBooking = laneBookings.find(b => b.isExternal);
+                                                
+                                                const booking = manualBooking || externalBooking;
                                                 const house = houses.find(h => h.id === houseId);
                                                 const color = house?.color === 'secondary' ? 'var(--color-secondary)' : 'var(--color-primary)';
 
                                                 return (
                                                     <div
                                                         key={booking.id}
-                                                        className="calendar-booking-bar"
+                                                        className={`calendar-booking-bar ${externalBooking ? 'is-synced' : ''}`}
                                                         style={{
-                                                            background: booking.isExternal 
-                                                                ? `repeating-linear-gradient(45deg, ${color}, ${color} 5px, rgba(255,255,255,0.1) 5px, rgba(255,255,255,0.1) 10px)`
-                                                                : color,
-                                                            backgroundColor: color, // Fallback
-                                                            height: '6px',
+                                                            backgroundColor: color,
+                                                            height: '8px',
                                                             width: '100%',
                                                             marginLeft: booking.isStart ? '15%' : '0',
                                                             marginRight: booking.isEnd ? '15%' : '0',
@@ -259,12 +262,28 @@ const Calendar = ({ bookings, onDateClick, onBookingClick }) => {
                                                             borderTopRightRadius: booking.isEnd ? '10px' : '0',
                                                             borderBottomRightRadius: booking.isEnd ? '10px' : '0',
                                                             opacity: booking.isExternal ? 0.7 : 0.9,
-                                                            border: booking.isExternal ? '1.5px dashed white' : 'none',
+                                                            border: externalBooking ? '1px solid white' : 'none',
                                                             boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                                                            boxSizing: 'border-box'
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            overflow: 'hidden',
+                                                            position: 'relative'
                                                         }}
-                                                        title={`${booking.guestName}${booking.isExternal ? ' (Plataforma Externa)' : ''}`}
-                                                    />
+                                                        title={`${booking.guestName}${externalBooking ? ' (Sincronizado con plataforma)' : ''}`}
+                                                    >
+                                                        {externalBooking && (
+                                                            <Globe 
+                                                                size={6} 
+                                                                color="white" 
+                                                                style={{ 
+                                                                    opacity: 0.9,
+                                                                    position: 'absolute',
+                                                                    right: booking.isEnd ? '20%' : '2px'
+                                                                }} 
+                                                            />
+                                                        )}
+                                                    </div>
                                                 );
                                             })
                                         )}
