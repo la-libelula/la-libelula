@@ -63,7 +63,7 @@ export const AppProvider = ({ children }) => {
         console.log('Migrando datos a Supabase...');
         try {
             if (localB && localB.length > 0) {
-                const preparedB = localB.map(({ id, ...rest }) => ({
+                const preparedB = localB.map(({ id: _, ...rest }) => ({
                     check_in: rest.checkIn || rest.check_in,
                     check_out: rest.checkOut || rest.check_out,
                     house_id: rest.houseId || rest.house_id,
@@ -77,7 +77,7 @@ export const AppProvider = ({ children }) => {
             }
 
             if (localE && localE.length > 0) {
-                const preparedE = localE.map(({ id, ...rest }) => ({
+                const preparedE = localE.map(({ id: _, ...rest }) => ({
                     date: rest.date,
                     house_id: rest.houseId || rest.house_id,
                     category_id: rest.categoryId || rest.category_id,
@@ -138,7 +138,7 @@ export const AppProvider = ({ children }) => {
             window.removeEventListener('click', enableAudioOnInteraction);
             window.removeEventListener('touchstart', enableAudioOnInteraction);
         };
-    }, [audioEnabled]);
+    }, [audioEnabled, fetchData]);
 
     const toggleAudio = async () => {
         if (!audioContextRef.current) {
