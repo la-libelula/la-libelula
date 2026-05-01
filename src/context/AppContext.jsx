@@ -9,7 +9,10 @@ const AppContext = createContext();
 export const AppProvider = ({ children }) => {
     const [bookings, setBookings] = useState([]);
     const [expenses, setExpenses] = useState([]);
+    const [calendarSettings, setCalendarSettings] = useState([]);
+    const [houses, setHouses] = useState(HOUSES); // Iniciar con los nombres por defecto
     const [loading, setLoading] = useState(true);
+    const [isSettingsAuthorized, setIsSettingsAuthorized] = useState(false);
 
     const fetchData = async () => {
         try {
@@ -22,6 +25,19 @@ export const AppProvider = ({ children }) => {
 
             setBookings(bData || []);
             setExpenses(eData || []);
+
+            const { data: sData, error: sError } = await supabase.from('calendar_settings').select('*');
+            if (!sError) setCalendarSettings(sData || []);
+
+            const { data: hData, error: hError } = await supabase.from('houses').select('*');
+            if (!hError && hData && hData.length > 0) {
+                // Combinar datos de DB (precios) con metadatos de UI (colores)
+                const mergedHouses = hData.map(dbHouse => {
+                    const constantsInfo = HOUSES.find(h => h.id === dbHouse.id) || {};
+                    return { ...constantsInfo, ...dbHouse };
+                });
+                setHouses(mergedHouses);
+            }
 
             // Handle migration if needed
             const localBookingsJSON = localStorage.getItem('bookings');
@@ -82,9 +98,94 @@ export const AppProvider = ({ children }) => {
         }
     };
 
+    const [audioEnabled, setAudioEnabled] = useState(false);
+    const [visualNotification, setVisualNotification] = useState(null);
+    const audioContextRef = React.useRef(null);
+
     useEffect(() => {
         fetchData();
-    }, []);
+
+        // Listener en tiempo real para nuevas reservas de la web
+        const channel = supabase
+            .channel('public:bookings')
+            .on('postgres_changes', { 
+                event: 'INSERT', 
+                schema: 'public', 
+                table: 'bookings',
+                filter: 'channel_id=eq.web' 
+            }, (payload) => {
+                console.log('¡Nueva reserva web recibida!', payload);
+                if (audioEnabled) {
+                    playNotificationSound();
+                }
+                setVisualNotification(payload.new);
+                fetchData(); // Refrescar lista
+            })
+            .subscribe();
+
+        // Intentar inicializar contexto de audio en el primer clic si el usuario lo desea
+        const enableAudioOnInteraction = () => {
+            if (!audioContextRef.current) {
+                audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        };
+
+        window.addEventListener('click', enableAudioOnInteraction, { once: true });
+        window.addEventListener('touchstart', enableAudioOnInteraction, { once: true });
+
+        return () => {
+            supabase.removeChannel(channel);
+            window.removeEventListener('click', enableAudioOnInteraction);
+            window.removeEventListener('touchstart', enableAudioOnInteraction);
+        };
+    }, [audioEnabled]);
+
+    const toggleAudio = async () => {
+        if (!audioContextRef.current) {
+            audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        if (audioContextRef.current.state === 'suspended') {
+            await audioContextRef.current.resume();
+        }
+        
+        setAudioEnabled(!audioEnabled);
+    };
+
+    const playNotificationSound = async () => {
+        try {
+            if (!audioContextRef.current) {
+                audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            if (audioContextRef.current.state === 'suspended') {
+                await audioContextRef.current.resume();
+            }
+
+            const playBeep = (time, freq = 880) => {
+                const oscillator = audioContextRef.current.createOscillator();
+                const gainNode = audioContextRef.current.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContextRef.current.destination);
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(freq, time);
+                gainNode.gain.setValueAtTime(0.1, time);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.2);
+
+                oscillator.start(time);
+                oscillator.stop(time + 0.2);
+            };
+
+            const now = audioContextRef.current.currentTime;
+            playBeep(now);
+            playBeep(now + 0.3);
+            playBeep(now + 0.6, 1100); // El último más agudo
+        } catch (e) {
+            console.error('Error al reproducir sonido:', e);
+        }
+    };
 
     // Bookings Actions
     const addBooking = async (bookingData) => {
@@ -163,7 +264,7 @@ export const AppProvider = ({ children }) => {
                 numHabitaciones: 1, // Siempre 1 para alquiler íntegro
                 titular: booking.guestName,
                 tipoPago,
-                fechaPago: fechaContrato,
+                fechaPago: booking.checkIn,
                 medioPago: 'Sincronizado desde Gestión',
                 created_at: new Date().toISOString()
             };
@@ -209,6 +310,74 @@ export const AppProvider = ({ children }) => {
         else fetchData();
     };
 
+    const updateCalendarSetting = async (setting) => {
+        const { error } = await supabase.from('calendar_settings').upsert([setting]);
+        if (error) console.error(error);
+        else fetchData();
+    };
+
+    const updateBulkCalendarSettings = async (settingsArray) => {
+        const { error } = await supabase.from('calendar_settings').upsert(settingsArray);
+        if (error) console.error(error);
+        else fetchData();
+    };
+
+    const updateHouseSettings = async (houseId, data) => {
+        try {
+            const { error } = await supabase.from('houses').update(data).eq('id', houseId);
+            if (error) {
+                console.error('Error en Supabase:', error);
+                throw error;
+            }
+            await fetchData(); // Esperar a que los datos nuevos lleguen
+        } catch (error) {
+            console.error('updateHouseSettings failed:', error);
+            throw error;
+        }
+    };
+
+    const deleteBulkCalendarSettings = async (houseId, startDate, endDate, selectedWeekdays) => {
+        // En Supabase/PostgREST no hay un delete masivo con filtro de día de semana complejo en una sola query
+        // así que primero identificamos las fechas exactas a borrar
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const datesToDelete = [];
+        let temp = new Date(start);
+
+        const formatLocalDate = (date) => {
+            const d = new Date(date);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        };
+
+        while (temp <= end) {
+            const dayOfWeek = temp.getDay(); 
+            const adjustedDay = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+            if (selectedWeekdays[adjustedDay]) {
+                datesToDelete.push(formatLocalDate(temp));
+            }
+            temp.setDate(temp.getDate() + 1);
+        }
+
+        if (datesToDelete.length === 0) return;
+
+        const { error } = await supabase.from('calendar_settings')
+            .delete()
+            .eq('house_id', houseId)
+            .in('date', datesToDelete);
+            
+        if (error) console.error(error);
+        else fetchData();
+    };
+
+    const deleteCalendarSetting = async (houseId, date) => {
+        const { error } = await supabase.from('calendar_settings')
+            .delete()
+            .eq('house_id', houseId)
+            .eq('date', date);
+        if (error) console.error(error);
+        else fetchData();
+    };
+
     const getHouseBookings = (houseId) => {
         return (adaptedBookings || []).filter(b => b.houseId === houseId);
     };
@@ -246,8 +415,20 @@ export const AppProvider = ({ children }) => {
                 deleteExpense,
                 getHouseBookings,
                 sendToViajeros,
-                houses: HOUSES,
-                channels: CHANNELS
+                houses,
+                channels: CHANNELS,
+                audioEnabled,
+                toggleAudio,
+                visualNotification,
+                setVisualNotification,
+                calendarSettings,
+                updateCalendarSetting,
+                updateBulkCalendarSettings,
+                updateHouseSettings,
+                deleteBulkCalendarSettings,
+                deleteCalendarSetting,
+                isSettingsAuthorized,
+                setIsSettingsAuthorized
             }}
         >
             {children}
