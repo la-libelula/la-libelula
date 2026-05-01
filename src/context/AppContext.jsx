@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { db_viajeros } from '../lib/firebase_viajeros';
 import { collection, addDoc } from 'firebase/firestore';
@@ -14,7 +14,7 @@ export const AppProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [isSettingsAuthorized, setIsSettingsAuthorized] = useState(false);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             setLoading(true);
             const { data: bData, error: bError } = await supabase.from('bookings').select('*').order('check_in', { ascending: false });
@@ -57,7 +57,7 @@ export const AppProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     const migrateData = async (localB, localE) => {
         console.log('Migrando datos a Supabase...');
@@ -138,7 +138,7 @@ export const AppProvider = ({ children }) => {
             window.removeEventListener('click', enableAudioOnInteraction);
             window.removeEventListener('touchstart', enableAudioOnInteraction);
         };
-    }, [audioEnabled, fetchData]);
+    }, [audioEnabled]);
 
     const toggleAudio = async () => {
         if (!audioContextRef.current) {
