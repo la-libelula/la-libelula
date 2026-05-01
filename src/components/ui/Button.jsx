@@ -36,7 +36,7 @@ const Button = ({
     return (
         <button
             className={`${btnClass} ${className}`}
-            style={{ ...sizeStyles[size] }}
+            style={{ ...sizeStyles[size], ...(props.style || {}) }}
             disabled={isLoading || props.disabled}
             {...props}
         >

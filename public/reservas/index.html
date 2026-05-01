@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservas | La Libélula</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Noto+Serif:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="container" id="main-content" style="padding-top: 3rem;">
+        <p style="text-align: center; color: var(--on-surface-variant); font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 2rem; font-weight: 800;">
+            Elige tu casa favorita
+        </p>
+
+        <main class="glass-card" id="booking-card">
+            <div class="house-selector">
+                <div class="house-tab-container">
+                    <button class="house-tab active" data-house="gredos">
+                        <img src="../gredos.jpg" alt="La Libélula Gredos">
+                        <span>Gredos</span>
+                    </button>
+                    <a href="https://www.lalibeluladegredos.es" target="_blank" class="house-web-link">www.lalibeluladegredos.es</a>
+                </div>
+
+                <div class="house-tab-container">
+                    <button class="house-tab" data-house="valles">
+                        <img src="../valles.jpeg" alt="La Libélula Valles">
+                        <span>Valles</span>
+                    </button>
+                    <a href="https://www.lalibeluladevalles.es" target="_blank" class="house-web-link">www.lalibeluladevalles.es</a>
+                </div>
+            </div>
+
+            <div id="booking-wrapper">
+                <section class="calendar-section">
+                    <h3 id="house-display-name" style="text-align: center; color: var(--on-surface-variant); font-size: 0.9rem; margin-bottom: 2rem; text-transform: uppercase; letter-spacing: 0.1em;">
+                        Consultando disponibilidad para: <strong style="color: var(--primary);">La Libélula Gredos</strong>
+                    </h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 id="current-month">Abril 2026</h2>
+                        <div style="display: flex; gap: 10px;">
+                            <button id="prev-month" class="btn-icon" style="background: none; border: 1px solid var(--outline); padding: 5px 10px; cursor: pointer;">&lt;</button>
+                            <button id="next-month" class="btn-icon" style="background: none; border: 1px solid var(--outline); padding: 5px 10px; cursor: pointer;">&gt;</button>
+                        </div>
+                    </div>
+                    
+                    <div class="calendar-grid" id="calendar">
+                        <!-- JS inyectado -->
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--on-surface-variant); margin-top: 1rem;">
+                        * Los días tachados ya están reservados.
+                    </p>
+                </section>
+
+                <form id="booking-form" style="margin-top: 0;">
+                    <div class="form-group">
+                        <label>Fechas Seleccionadas</label>
+                        <input type="text" id="selected-dates" placeholder="Pulsa en el calendario..." readonly required>
+                        <div id="price-summary" style="margin-top: 0.75rem; font-size: 0.9rem;"></div>
+                    </div>
+
+                    <!-- Cancellation Policy Selectors -->
+                    <div class="form-group">
+                        <label>Tipo de Tarifa</label>
+                        <div class="policy-selector">
+                            <label class="policy-chip active">
+                                <input type="radio" name="cancellation_policy" value="standard" checked>
+                                <div class="chip-content">
+                                    <span class="chip-title">Tarifa Estándar</span>
+                                    <span class="chip-desc">Con devolución por cancelación</span>
+                                </div>
+                            </label>
+                            <label class="policy-chip">
+                                <input type="radio" name="cancellation_policy" value="non_refundable">
+                                <div class="chip-content">
+                                    <span class="chip-title">Tarifa Ahorro <span class="discount-tag">-10%</span></span>
+                                    <span class="chip-desc">Sin devolución (Pago 100% ahora)</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nombre Completo</label>
+                        <input type="text" id="guest-name" placeholder="Tu nombre..." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Teléfono de contacto</label>
+                        <input type="tel" id="guest-phone" placeholder="600 000 000" required>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="btn-submit">
+                        RESERVAR
+                    </button>
+                </form>
+            </div>
+        </main>
+
+        <div id="success-screen" class="glass-card success-message" style="display: none;">
+            <div style="font-size: 4.5rem; margin-bottom: 1.5rem; animation: tada 1.5s ease; text-align: center;">🎉</div>
+            <div id="success-dynamic-content" style="text-align: left;">
+                <!-- Se rellena por JS -->
+            </div>
+            
+            <div class="bizum-box" style="margin-top: 2.5rem; border-top: 1px solid var(--surface-low); padding-top: 2rem; background: rgba(120, 88, 60, 0.03); border-radius: var(--radius-md); text-align: center;">
+                <span style="font-weight: 700; color: var(--on-surface-variant); display: block; margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase;">Enviar Bizum a Mayte:</span>
+                <span class="bizum-number" style="letter-spacing: 0.1em; color: var(--secondary); font-size: 1.8rem;">621 035 482</span>
+            </div>
+            
+            <button onclick="window.location.reload()" class="btn-primary" style="background: var(--surface-low); color: var(--on-surface); margin-top: 2.5rem; border: 1px solid var(--outline); width: 100%;">
+                Volver al inicio
+            </button>
+
+            <style>
+                @keyframes tada {
+                    0% { transform: scale(1); }
+                    10%, 20% { transform: scale(0.9) rotate(-3deg); }
+                    30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); }
+                    40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); }
+                    100% { transform: scale(1) rotate(0); }
+                }
+            </style>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

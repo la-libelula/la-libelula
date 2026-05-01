@@ -227,6 +227,7 @@ export const AppProvider = ({ children }) => {
     };
 
     const sendToViajeros = async (booking) => {
+        console.log('DEBUG - Datos de la reserva a enviar:', booking);
         try {
             // Mapeo de casa a código de establecimiento
             const houseCodes = {

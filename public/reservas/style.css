@@ -1,0 +1,551 @@
+:root {
+    --primary: #173124;
+    --primary-container: #2d4739;
+    --on-primary: #ffffff;
+    --secondary: #78583c;
+    --secondary-container: #fdd2af;
+    --on-secondary: #ffffff;
+    --surface: #fcf9f4;
+    --surface-low: #f6f3ee;
+    --surface-lowest: #ffffff;
+    --on-surface: #1c1c19;
+    --on-surface-variant: #424844;
+    --outline: #727973;
+    --radius-sm: 0.125rem;
+    --radius-md: 0.375rem;
+    --radius-lg: 0.75rem;
+    --shadow-soft: 0 40px 60px -20px rgba(28, 28, 25, 0.06);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: 'Manrope', sans-serif;
+    background-color: var(--surface);
+    color: var(--on-surface);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+h1, h2, h3 {
+    font-family: 'Noto Serif', serif;
+    letter-spacing: -0.02em;
+    font-weight: 500;
+}
+
+/* Navegación Fija */
+.main-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    background: rgba(252, 249, 244, 0.8);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid rgba(23, 49, 36, 0.05);
+}
+
+.nav-brand {
+    font-family: 'Noto Serif', serif;
+    font-size: 1.25rem;
+    letter-spacing: 0.2em;
+    color: var(--primary);
+    font-weight: 500;
+}
+
+.nav-link {
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--on-surface-variant);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: color 0.3s;
+}
+
+.nav-link:hover {
+    color: var(--primary);
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem;
+}
+
+/* Header Editorial */
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.8s forwards;
+}
+
+.header-subtitle {
+    font-size: 1rem;
+    color: var(--on-surface-variant);
+    margin-top: 0.75rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.label-overline {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--on-surface-variant);
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+h1 {
+    font-size: 2.2rem;
+    color: var(--primary);
+    line-height: 1.2;
+}
+
+/* Card System */
+.glass-card {
+    background: var(--surface-lowest);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-soft);
+    padding: 2.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* House Selector with Images */
+.house-selector {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+}
+
+.house-tab-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    width: 160px;
+}
+
+.house-tab {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.house-tab img {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid transparent;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.house-tab span {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--on-surface-variant);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.house-tab:hover img {
+    transform: scale(1.05);
+    border-color: var(--secondary);
+}
+
+.house-tab.active img {
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 4px rgba(120, 88, 60, 0.1), 0 8px 25px rgba(120, 88, 60, 0.2);
+}
+
+.house-tab.active span {
+    color: var(--secondary);
+}
+
+.house-web-link {
+    text-decoration: none;
+    font-size: 0.65rem;
+    color: var(--on-surface-variant);
+    font-weight: 600;
+    opacity: 0.6;
+    transition: all 0.3s ease;
+    padding: 4px 8px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    text-transform: lowercase;
+}
+
+.house-web-link:hover {
+    opacity: 1;
+    color: var(--secondary);
+    border-color: rgba(120, 88, 60, 0.3);
+    background: rgba(120, 88, 60, 0.05);
+}
+    border: 3px solid transparent;
+    filter: grayscale(100%) opacity(0.6);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.house-tab span {
+    font-family: 'Noto Serif', serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--on-surface-variant);
+    transition: color 0.3s;
+}
+
+.house-tab:hover img {
+    filter: grayscale(0%) opacity(1);
+    transform: translateY(-5px);
+}
+
+.house-tab.active img {
+    filter: grayscale(0%) opacity(1);
+    transform: scale(1.15);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+
+.house-tab.active[data-house="gredos"] img {
+    border-color: var(--primary);
+}
+
+.house-tab.active[data-house="valles"] img {
+    border-color: var(--secondary);
+}
+
+.house-tab.active span {
+    color: var(--on-surface);
+    font-weight: 700;
+}
+
+/* Responsive Grid for PC */
+#booking-wrapper {
+    display: grid;
+    gap: 3rem;
+    align-items: start;
+    grid-template-columns: 1fr; /* Default mobile */
+}
+
+@media (min-width: 1000px) {
+    #booking-wrapper {
+        grid-template-columns: 1.2fr 1fr;
+    }
+    .container {
+        max-width: 1100px;
+    }
+}
+
+/* Bizum Notice Pre-booking */
+.bizum-notice {
+    background: rgba(120, 88, 60, 0.08);
+    border-left: 4px solid var(--secondary);
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.bizum-icon {
+    background: var(--secondary);
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    line-height: 1;
+}
+
+.bizum-notice p {
+    font-size: 0.85rem;
+    color: var(--on-surface-variant);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Calendar Styling */
+.calendar-section {
+    background: var(--surface-low);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(23, 49, 36, 0.05);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 10px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(23, 49, 36, 0.03);
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background: white;
+    border: 1px solid transparent;
+}
+
+.calendar-day:hover:not(.disabled) {
+    background: var(--secondary-container);
+    border-color: var(--secondary);
+    transform: scale(1.05);
+    z-index: 2;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.calendar-day.disabled {
+    background: transparent;
+    color: #d1d1cf;
+    cursor: not-allowed;
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.calendar-day.selected {
+    background: var(--primary) !important;
+    color: white;
+    font-weight: 700;
+    box-shadow: 0 4px 10px rgba(23, 49, 36, 0.3);
+}
+
+.calendar-day.today {
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    font-weight: 800;
+}
+
+/* Policy Selector Chips */
+.policy-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.policy-chip {
+    padding: 1rem;
+    border: 1.5px solid var(--surface-low);
+    background: var(--surface-low);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.policy-chip input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    cursor: pointer;
+}
+
+.policy-chip:hover {
+    border-color: var(--outline);
+    background: white;
+}
+
+.policy-chip.active {
+    background: white;
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(23, 49, 36, 0.08);
+}
+
+.chip-content {
+    display: flex;
+    flex-direction: column;
+    pointer-events: none;
+}
+
+.chip-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.chip-desc {
+    font-size: 0.75rem;
+    color: var(--on-surface-variant);
+}
+
+.discount-tag {
+    background: #e11d48;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 800;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--on-surface-variant);
+    margin-bottom: 0.5rem;
+}
+
+input, select {
+    width: 100%;
+    padding: 0.85rem;
+    border: none;
+    background: var(--surface-low);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: background 0.3s;
+}
+
+input:focus {
+    outline: none;
+    background: var(--surface-lowest);
+    box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 1.15rem;
+    border: none;
+    background: linear-gradient(135deg, var(--primary), var(--primary-container));
+    color: white;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: transform 0.2s, opacity 0.2s;
+    margin-top: 0.5rem;
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+/* Success State */
+.success-message {
+    text-align: center;
+    padding: 3rem 1rem;
+    display: none;
+}
+
+.bizum-box {
+    background: var(--surface-low);
+    padding: 2rem;
+    border-radius: var(--radius-md);
+    margin: 2rem 0;
+    border: 1px dashed var(--secondary);
+}
+
+.bizum-number {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--secondary);
+    display: block;
+    margin: 0.5rem 0;
+}
+
+/* Price Calculator UI */
+.price-box {
+    background: var(--surface-low);
+    padding: 1.25rem;
+    border-radius: var(--radius-md);
+    margin: 1rem 0;
+    border: 1px solid rgba(23, 49, 36, 0.1);
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    color: var(--on-surface-variant);
+}
+
+.price-total {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(23, 49, 36, 0.1);
+    display: flex;
+    justify-content: space-between;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--primary);
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Loading Spinner */
+.loader {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #fff;
+    border-bottom-color: transparent;
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+@keyframes rotation {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.hidden { display: none; }

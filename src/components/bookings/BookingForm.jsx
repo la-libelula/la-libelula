@@ -189,11 +189,27 @@ const BookingForm = ({ onClose, initialData = null }) => {
                 </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
+            <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '0.75rem', 
+                marginTop: '1.5rem',
+                borderTop: '1px solid var(--color-border)',
+                padding: '1.25rem',
+                backgroundColor: 'rgba(0,0,0,0.02)',
+                borderRadius: 'var(--radius-md)',
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
+            }}>
                 {initialData && (
-                    <>
-                        <Button type="button" onClick={handleDelete} style={{ marginRight: 'auto', backgroundColor: '#ef4444', color: 'white', borderColor: '#ef4444' }}>
-                            Anular
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        <Button 
+                            type="button" 
+                            onClick={handleDelete} 
+                            style={{ backgroundColor: '#ef4444', color: 'white', borderColor: '#ef4444', width: '100%', justifyContent: 'center' }}
+                            size="lg"
+                        >
+                            <Trash2 size={20} style={{ marginRight: '0.5rem' }} />
+                            Anular Reserva
                         </Button>
                         <Button 
                             type="button" 
@@ -202,19 +218,25 @@ const BookingForm = ({ onClose, initialData = null }) => {
                             icon={Send}
                             style={{ 
                                 backgroundColor: sentStatus === 'success' ? '#10b981' : 'var(--color-secondary)',
-                                color: 'white'
+                                color: 'white',
+                                width: '100%',
+                                justifyContent: 'center'
                             }}
+                            size="lg"
                         >
-                            {isSending ? 'Enviando...' : sentStatus === 'success' ? 'Enviado' : 'Enviar a Registro'}
+                            {isSending ? 'Enviando...' : sentStatus === 'success' ? 'Enviado' : 'Enviar a Registro (v2.1)'}
                         </Button>
-                    </>
+                    </div>
                 )}
-                <Button type="button" variant="secondary" onClick={onClose}>
-                    Cancelar
-                </Button>
-                <Button type="submit" icon={Save}>
-                    {initialData ? 'Actualizar' : 'Guardar'}
-                </Button>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.5rem' }}>
+                    <Button type="button" variant="secondary" onClick={onClose} style={{ width: '100%', justifyContent: 'center' }}>
+                        Cerrar
+                    </Button>
+                    <Button type="submit" icon={Save} style={{ width: '100%', justifyContent: 'center' }}>
+                        {initialData ? 'Actualizar' : 'Guardar'}
+                    </Button>
+                </div>
             </div>
         </form>
     );

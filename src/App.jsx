@@ -5,6 +5,7 @@ import Bookings from './pages/Bookings';
 import Expenses from './pages/Expenses';
 import Stats from './pages/Stats';
 import History from './pages/History';
+import Settings from './pages/Settings';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="expenses" element={<Expenses />} />
         <Route path="stats" element={<Stats />} />
         <Route path="history" element={<History />} />
+        <Route path="settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
