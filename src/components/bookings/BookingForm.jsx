@@ -16,6 +16,7 @@ const BookingForm = ({ onClose, initialData = null }) => {
     const [formData, setFormData] = useState({
         houseId: HOUSES[0].id,
         guestName: '',
+        guestPhone: '',
         checkIn: '',
         checkOut: '',
         channelId: CHANNELS[0].id,
@@ -27,8 +28,13 @@ const BookingForm = ({ onClose, initialData = null }) => {
 
     useEffect(() => {
         if (initialData) {
+            const nameMatch = (initialData.guestName || '').match(/^(.*?)\s*\(Tel:\s*(.*?)\)$/i);
             // eslint-disable-next-line react-hooks/set-state-in-effect
-            setFormData(initialData);
+            setFormData({
+                ...initialData,
+                guestName: nameMatch ? nameMatch[1].trim() : (initialData.guestName || ''),
+                guestPhone: nameMatch ? nameMatch[2].trim() : ''
+            });
         }
     }, [initialData]);
 
@@ -98,8 +104,14 @@ const BookingForm = ({ onClose, initialData = null }) => {
             ...formData,
             totalAmount: parseFloat(formData.totalAmount),
             netIncome: parseFloat(formData.netIncome),
-            deposit: parseFloat(formData.deposit) || 0
+            deposit: parseFloat(formData.deposit) || 0,
+            guestName: formData.guestPhone 
+                ? `${formData.guestName.trim()} (Tel: ${formData.guestPhone.trim()})` 
+                : formData.guestName.trim()
         };
+        
+        // Limpiar field virtual que no va a DB
+        delete dataToSave.guestPhone;
 
         if (initialData) {
             updateBooking(initialData.id, dataToSave);
@@ -110,7 +122,9 @@ const BookingForm = ({ onClose, initialData = null }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            
+            {/* SECCIÓN: DETALLES ALOJAMIENTO */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <Select
                     label="Casa Rural"
@@ -119,12 +133,31 @@ const BookingForm = ({ onClose, initialData = null }) => {
                     onChange={handleChange}
                     options={HOUSES.map(h => ({ value: h.id, label: h.name }))}
                 />
+                <Select
+                    label="Canal de Reserva"
+                    name="channelId"
+                    value={formData.channelId}
+                    onChange={handleChange}
+                    options={CHANNELS.map(c => ({ value: c.id, label: c.name }))}
+                />
+            </div>
+
+            {/* SECCIÓN: CLIENTE */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1rem' }}>
                 <Input
                     label="Nombre del Cliente"
                     name="guestName"
                     value={formData.guestName}
                     onChange={handleChange}
                     required
+                    placeholder="Ej: Juan Pérez"
+                />
+                <Input
+                    label="Teléfono de contacto"
+                    name="guestPhone"
+                    value={formData.guestPhone}
+                    onChange={handleChange}
+                    placeholder="Ej: 666777888"
                 />
             </div>
 
@@ -137,13 +170,6 @@ const BookingForm = ({ onClose, initialData = null }) => {
             />
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <Select
-                    label="Canal"
-                    name="channelId"
-                    value={formData.channelId}
-                    onChange={handleChange}
-                    options={CHANNELS.map(c => ({ value: c.id, label: c.name }))}
-                />
                 <Input
                     label="Importe Total (€)"
                     type="number"
@@ -153,18 +179,17 @@ const BookingForm = ({ onClose, initialData = null }) => {
                     required
                     step="0.01"
                 />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <Input
                     label="Anticipo / Prereserva (€)"
                     type="number"
                     name="deposit"
                     value={formData.deposit}
                     onChange={handleChange}
-                    placeholder="0.00"
                     step="0.01"
                 />
+            </div>
+
+            <div>
                 <Input
                     label="Ingreso Neto Real (€)"
                     type="number"
