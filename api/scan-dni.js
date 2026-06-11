@@ -40,7 +40,7 @@ Instrucciones críticas:
 4. Para DNI español (NIF), localiza el número de soporte o de control ("soporteDocumento"). Suele encontrarse en la parte delantera (bajo la fecha de nacimiento en el DNI 3.0/4.0 o arriba a la derecha en modelos anteriores). Suele constar de 3 letras seguidas de 6 números (ej: AAA123456) o un formato similar. Es fundamental para SES.HOSPEDAJES.
 5. La fecha de nacimiento ("fechaNacimiento") debe formatearse como AAAA-MM-DD.
 6. El sexo ("sexo") debe ser "H" (Hombre), "M" (Mujer) o "O" (Otro/No especificado).
-7. Si la dirección de la persona ("direccion"), código postal ("codigoPostal"), o el municipio/provincia ("municipio") son visibles (por ejemplo, en la parte trasera del DNI o en el documento), extráelos.
+7. Si la dirección de la persona ("direccion"), código postal ("codigoPostal"), o el municipio/provincia ("municipio") son visibles (por ejemplo, en la parte trasera del DNI o en el documento), extráelos. MUY IMPORTANTE: El campo "municipio" debe corresponder al municipio de residencia/domicilio actual, NO al municipio del lugar de nacimiento. En la trasera del DNI español aparecen ambos por separado; asegúrate de extraer el que forma parte de la dirección de residencia.
 8. El campo "pais" debe ser el código ISO de 3 letras del país emisor (ej: "ESP" para España, "FRA" para Francia, "DEU" para Alemania, etc.).
 9. Devuelve ÚNICAMENTE el bloque JSON crudo sin formato markdown, sin envolverlo en triple comilla invertida (\`\`\`json ... \`\`\`), sin texto adicional, de modo que pueda ser parseado directamente con JSON.parse().
 
