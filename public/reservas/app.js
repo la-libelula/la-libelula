@@ -1,4 +1,4 @@
-const supabaseUrl = 'https://bclwefmdnjtrqitokmey.supabase.co';
+﻿const supabaseUrl = 'https://bclwefmdnjtrqitokmey.supabase.co';
 const supabaseKey = 'sb_publishable_lkRqb-MVD02sFLmB5ZoTrw_7wrOCYNC';
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
@@ -108,7 +108,7 @@ bookingForm.onsubmit = async (e) => {
         guest_name: `${guestName} (Tel: ${guestPhone}) [${policyLabel}]`,
         channel_id: 'web',
         total_amount: totalCalculated,
-        net_income: totalCalculated,
+        net_income: depositRequired,
         deposit: depositRequired,
         created_at: new Date().toISOString()
     };
@@ -319,9 +319,7 @@ function renderCalendar() {
 
         // Verificar si está ocupado
         const isBooked = bookedDates.some(b => {
-            const start = new Date(b.check_in);
-            const end = new Date(b.check_out);
-            return date >= start && date < end;
+            return dateStr >= b.check_in && dateStr < b.check_out;
         });
 
         const isPast = date < today;
@@ -333,6 +331,9 @@ function renderCalendar() {
 
         if (isBooked || isPast || isTooFar || isManuallyBlocked) {
             dayEl.classList.add('disabled');
+            if (isBooked) dayEl.classList.add('booked');
+            if (isPast) dayEl.classList.add('past');
+            if (isManuallyBlocked) dayEl.classList.add('manual-blocked');
         } else {
             dayEl.onclick = () => selectDate(dateStr);
             
@@ -490,3 +491,4 @@ window.addEventListener('DOMContentLoaded', () => {
     
     loadBookings();
 });
+

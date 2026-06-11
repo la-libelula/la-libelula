@@ -28,12 +28,11 @@ const BookingForm = ({ onClose, initialData = null }) => {
 
     useEffect(() => {
         if (initialData) {
-            const nameMatch = (initialData.guestName || '').match(/^(.*?)\s*\(Tel:\s*(.*?)\)$/i);
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setFormData({
                 ...initialData,
-                guestName: nameMatch ? nameMatch[1].trim() : (initialData.guestName || ''),
-                guestPhone: nameMatch ? nameMatch[2].trim() : ''
+                // Usar directamente guestName y guestPhone que ahora vienen limpios del Context
+                guestName: initialData.guestName || '',
+                guestPhone: initialData.guestPhone || ''
             });
         }
     }, [initialData]);
@@ -100,18 +99,27 @@ const BookingForm = ({ onClose, initialData = null }) => {
             return;
         }
 
+        // Preparar el nombre "empaquetado" con la info extra conservando la etiqueta existente si la hubiera
+        let finalPackedName = formData.guestName.trim();
+        if (formData.guestPhone) {
+            finalPackedName += ` (Tel: ${formData.guestPhone.trim()})`;
+        }
+        // Conservar policyLabel si venía de la reserva web original, para no perderla en la DB
+        if (initialData?.policyLabel) {
+            finalPackedName += ` [${initialData.policyLabel}]`;
+        }
+
         const dataToSave = {
             ...formData,
             totalAmount: parseFloat(formData.totalAmount),
             netIncome: parseFloat(formData.netIncome),
             deposit: parseFloat(formData.deposit) || 0,
-            guestName: formData.guestPhone 
-                ? `${formData.guestName.trim()} (Tel: ${formData.guestPhone.trim()})` 
-                : formData.guestName.trim()
+            guestName: finalPackedName
         };
         
-        // Limpiar field virtual que no va a DB
+        // Limpiar fields virtuales o auxiliares antes de enviarlos a AppContext/DB
         delete dataToSave.guestPhone;
+        delete dataToSave.policyLabel;
 
         if (initialData) {
             updateBooking(initialData.id, dataToSave);
@@ -153,7 +161,7 @@ const BookingForm = ({ onClose, initialData = null }) => {
                     placeholder="Ej: Juan Pérez"
                 />
                 <Input
-                    label="Teléfono de contacto"
+                    label="Teléfono"
                     name="guestPhone"
                     value={formData.guestPhone}
                     onChange={handleChange}

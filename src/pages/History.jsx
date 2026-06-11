@@ -233,7 +233,14 @@ const History = () => {
                                                     {booking.houseId === 'gredos' ? 'Gredos' : 'Valles'}
                                                 </span>
                                             </td>
-                                            <td style={{ padding: '1rem', fontWeight: 500 }}>{booking.guestName}</td>
+                                            <td style={{ padding: '1rem' }}>
+                                                <div style={{ fontWeight: 500 }}>{booking.guestName}</div>
+                                                {booking.guestPhone && (
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.15rem' }}>
+                                                        ☏ {booking.guestPhone}
+                                                    </div>
+                                                )}
+                                            </td>
                                             <td style={{ padding: '1rem' }}>{getChannelName(booking.channelId)}</td>
                                             <td style={{ padding: '1rem', textAlign: 'right' }}>
                                                 {parseFloat(booking.totalAmount).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}

@@ -383,18 +383,48 @@ export const AppProvider = ({ children }) => {
         return (adaptedBookings || []).filter(b => b.houseId === houseId);
     };
 
-    // Adapt database fields to camelCase for the UI components
-    const adaptedBookings = (bookings || []).map(b => ({
-        ...b,
-        checkIn: b.check_in || '',
-        checkOut: b.check_out || '',
-        houseId: b.house_id || '',
-        guestName: b.guest_name || '',
-        channelId: b.channel_id || '',
-        totalAmount: b.total_amount || 0,
-        netIncome: b.net_income || 0,
-        deposit: b.deposit || 0
-    }));
+    // Adapt database fields to camelCase for the UI components and EXTRACT PACKED DATA
+    const adaptedBookings = (bookings || []).map(b => {
+        // EXPLICACIÓN: Extraemos de atrás hacia adelante de forma iterativa y robusta
+        let name = b.guest_name || '';
+        let phone = '';
+        let policy = '';
+
+        // 1. Extraer y limpiar la etiqueta de Tarifa [XXX] al final
+        const policyMatch = name.match(/\s*\[([^\]]+)\]\s*$/);
+        if (policyMatch) {
+            policy = policyMatch[1].trim();
+            name = name.replace(policyMatch[0], '').trim();
+        }
+
+        // 2. Extraer y limpiar el Teléfono (Tel: XXX) al final
+        // Lo hacemos en un bucle por si el usuario guardó varias veces duplicándolo accidentalmente
+        let hasPhoneMatch = true;
+        while (hasPhoneMatch) {
+            const phoneMatch = name.match(/\s*\(Tel:\s*([^)]+)\)\s*$/i);
+            if (phoneMatch) {
+                // Guardar el primero que encontremos (que es el último real añadido)
+                if (!phone) phone = phoneMatch[1].trim();
+                name = name.replace(phoneMatch[0], '').trim();
+            } else {
+                hasPhoneMatch = false;
+            }
+        }
+
+        return {
+            ...b,
+            checkIn: b.check_in || '',
+            checkOut: b.check_out || '',
+            houseId: b.house_id || '',
+            guestName: name.trim() || (b.guest_name || ''), // El nombre queda limpio tras quitarle las capas
+            guestPhone: phone,
+            policyLabel: policy, 
+            channelId: b.channel_id || '',
+            totalAmount: b.total_amount || 0,
+            netIncome: b.net_income || 0,
+            deposit: b.deposit || 0
+        };
+    });
 
     const adaptedExpenses = (expenses || []).map(e => ({
         ...e,

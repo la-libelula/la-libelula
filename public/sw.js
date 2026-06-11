@@ -1,4 +1,4 @@
-const CACHE_NAME = 'la-libelula-v1';
+﻿const CACHE_NAME = 'la-libelula-v4';
 const ASSETS = [
     '/',
     '/index.html',
@@ -38,3 +38,4 @@ self.addEventListener('fetch', (event) => {
         fetch(event.request).catch(() => caches.match(event.request))
     );
 });
+

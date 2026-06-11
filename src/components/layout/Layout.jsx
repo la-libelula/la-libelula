@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { LayoutDashboard, CalendarDays, ReceiptEuro, BarChart3, Home, Clock, Menu, X as CloseIcon, LogOut, User, ShieldCheck, HelpCircle, Bell, BellOff, Link as LinkIcon, CheckCircle2 } from 'lucide-react';
 import HelpModal from '../ui/HelpModal.jsx';
@@ -16,7 +16,7 @@ const Layout = () => {
     const [copiedHouse, setCopiedHouse] = useState('');
 
     const handleCopyLink = (house) => {
-        const url = `https://la-libelula-seven.vercel.app/reservas/index.html?casa=${house}`;
+        const url = `https://www.lalibeluladegredos.com/reservas/index.html?casa=${house}`;
         navigator.clipboard.writeText(url);
         setCopiedHouse(house === 'gredos' ? 'Gredos' : 'Valles');
         setShowCopyToast(true);

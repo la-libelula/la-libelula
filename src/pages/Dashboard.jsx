@@ -141,7 +141,10 @@ const Dashboard = () => {
                                 className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                             >
                                 <div>
-                                    <div style={{ fontWeight: 500 }}>{b.guestName}</div>
+                                    <div style={{ fontWeight: 500 }}>
+                                        {b.guestName}
+                                        {b.guestPhone && <span style={{ fontWeight: 400, fontSize: '0.8rem', color: 'var(--color-text-muted)', marginLeft: '0.5rem' }}>☏ {b.guestPhone}</span>}
+                                    </div>
                                     <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{b.checkIn} - {HOUSES.find(h => h.id === b.houseId)?.name}</div>
                                 </div>
                                 <div style={{ fontWeight: 600, color: 'var(--color-primary)' }}>
