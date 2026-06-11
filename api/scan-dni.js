@@ -1,3 +1,5 @@
+import https from 'https';
+
 export default async function handler(req, res) {
   // Configuración de cabeceras CORS para permitir peticiones desde el formulario de autocheckin
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -60,37 +62,61 @@ Estructura requerida:
   "pais": "ESP"
 }`;
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-
-    const response = await fetch(geminiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { text: prompt },
-              {
-                inlineData: {
-                  mimeType: finalMimeType,
-                  data: base64Data
-                }
+    const postData = JSON.stringify({
+      contents: [
+        {
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                mimeType: finalMimeType,
+                data: base64Data
               }
-            ]
-          }
-        ]
-      })
+            }
+          ]
+        }
+      ]
     });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      return res.status(response.status).json({ error: `Error de la API de Gemini: ${errText}` });
+    const options = {
+      hostname: 'generativelanguage.googleapis.com',
+      path: `/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postData)
+      }
+    };
+
+    const callGemini = () => {
+      return new Promise((resolve, reject) => {
+        const reqGem = https.request(options, (resGem) => {
+          let data = '';
+          resGem.on('data', (chunk) => {
+            data += chunk;
+          });
+          resGem.on('end', () => {
+            resolve({ statusCode: resGem.statusCode, data });
+          });
+        });
+
+        reqGem.on('error', (e) => {
+          reject(e);
+        });
+
+        reqGem.write(postData);
+        reqGem.end();
+      });
+    };
+
+    const geminiResult = await callGemini();
+
+    if (geminiResult.statusCode < 200 || geminiResult.statusCode >= 300) {
+      return res.status(geminiResult.statusCode).json({ error: `Error de la API de Gemini (Código ${geminiResult.statusCode}): ${geminiResult.data}` });
     }
 
-    const data = await response.json();
-    const textOutput = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const responseData = JSON.parse(geminiResult.data);
+    const textOutput = responseData.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!textOutput) {
       return res.status(500).json({ error: 'La API de Gemini no devolvió ningún contenido útil.' });
