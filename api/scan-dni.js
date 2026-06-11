@@ -60,36 +60,51 @@ Estructura requerida:
   "pais": "ESP"
 }`;
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        const modelsToTry = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+    let lastError = null;
+    let data = null;
 
-    const response = await fetch(geminiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { text: prompt },
+    for (const model of modelsToTry) {
+      try {
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const response = await fetch(geminiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            contents: [
               {
-                inlineData: {
-                  mimeType: finalMimeType,
-                  data: base64Data
-                }
+                parts: [
+                  { text: prompt },
+                  {
+                    inlineData: {
+                      mimeType: finalMimeType,
+                      data: base64Data
+                    }
+                  }
+                ]
               }
             ]
-          }
-        ]
-      })
-    });
+          })
+        });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      return res.status(response.status).json({ error: `Error de la API de Gemini: ${errText}` });
+        if (response.ok) {
+          data = await response.json();
+          break;
+        } else {
+          lastError = await response.text();
+          console.warn(`Model ${model} failed: ${lastError}`);
+        }
+      } catch (err) {
+        lastError = err.message;
+        console.warn(`Model ${model} threw error: ${err}`);
+      }
     }
 
-    const data = await response.json();
+    if (!data) {
+      return res.status(503).json({ error: `Error de la API de Gemini: ${lastError}` });
+    }
     const textOutput = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!textOutput) {
