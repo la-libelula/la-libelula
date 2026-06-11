@@ -1,38 +1,28 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/*.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/reseteo.html",
-      "destination": "/reseteo.html"
-    },
-    {
-      "source": "/clear.html",
-      "destination": "/clear.html"
-    },
-    {
-      "source": "/site.webmanifest",
-      "destination": "/site.webmanifest"
-    },
-    {
-      "source": "/worker-v17.js",
-      "destination": "/worker-v17.js"
-    },
-    {
-      "source": "/((?!api/.*).*)",
-      "destination": "/index.html"
-    }
-  ]
+    "rewrites": [
+        {
+            "source": "/api/:path*",
+            "destination": "/api/:path*"
+        },
+        {
+            "source": "/reseteo.html",
+            "destination": "/reseteo.html"
+        },
+        {
+            "source": "/clear.html",
+            "destination": "/clear.html"
+        },
+        {
+            "source": "/site.webmanifest",
+            "destination": "/site.webmanifest"
+        },
+        {
+            "source": "/worker-v17.js",
+            "destination": "/worker-v17.js"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ]
 }

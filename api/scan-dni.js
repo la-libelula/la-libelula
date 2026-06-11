@@ -1,5 +1,3 @@
-import https from 'https';
-
 export default async function handler(req, res) {
   // Configuración de cabeceras CORS para permitir peticiones desde el formulario de autocheckin
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -31,20 +29,20 @@ export default async function handler(req, res) {
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: 'La clave GEMINI_API_KEY no está configurada.' });
+      return res.status(500).json({ error: 'La clave GEMINI_API_KEY no está configurada en las variables de entorno de Vercel.' });
     }
 
     const prompt = `Analiza la imagen de este documento de identidad (DNI, NIE, Pasaporte) de forma extremadamente precisa y extrae los datos en el siguiente formato JSON.
 Instrucciones críticas:
 1. Identifica el tipo de documento: "NIF" (para DNI de España), "NIE" (para extranjeros en España), "PAS" (para Pasaporte) o "OTRO".
-2. Extrae el "nombre", "apellido1" (primer apellido) y "apellido2" (segundo apellido, si existe y no es igual al primero). Ponlos en MAYÚSCULAS y limpios de acentos.
-3. Extrae el número de documento ("numeroDocumento"). Para DNI, debe ser de 9 caracteres (8 números y una letra). Para NIE, debe empezar por X, Y o Z, seguido de 7 números y una letra.
-4. Para DNI español (NIF), localiza el número de soporte o de control ("soporteDocumento"). Suele empezar con 3 letras y 6 números (ej: AAA123456). Es fundamental para SES.HOSPEDAJES.
+2. Extrae el "nombre", "apellido1" (primer apellido) y "apellido2" (segundo apellido, si existe y no es igual al primero). Ponlos en MAYÚSCULAS y limpios de acentos si es posible, o respeta su ortografía.
+3. Extrae el número de documento ("numeroDocumento"). Para DNI español, debe ser de 9 caracteres (8 números y una letra de control, ej: 12345678A). Para NIE español, debe empezar por X, Y o Z seguido de 7 números y una letra.
+4. Para DNI español (NIF), localiza el número de soporte o de control ("soporteDocumento"). Suele encontrarse en la parte delantera (bajo la fecha de nacimiento en el DNI 3.0/4.0 o arriba a la derecha en modelos anteriores). Suele constar de 3 letras seguidas de 6 números (ej: AAA123456) o un formato similar. Es fundamental para SES.HOSPEDAJES.
 5. La fecha de nacimiento ("fechaNacimiento") debe formatearse como AAAA-MM-DD.
-6. El sexo ("sexo") debe ser "H" (Hombre), "M" (Mujer) o "O" (Otro).
-7. Si la dirección de la persona ("direccion"), código postal ("codigoPostal"), o el municipio/provincia ("municipio") son visibles, extráelos.
-8. El campo "pais" debe ser el código ISO de 3 letras del país emisor (ej: "ESP").
-9. Devuelve ÚNICAMENTE el bloque JSON crudo sin formato markdown, sin envolverlo en triple comilla invertida, sin texto adicional.
+6. El sexo ("sexo") debe ser "H" (Hombre), "M" (Mujer) o "O" (Otro/No especificado).
+7. Si la dirección de la persona ("direccion"), código postal ("codigoPostal"), o el municipio/provincia ("municipio") son visibles (por ejemplo, en la parte trasera del DNI o en el documento), extráelos.
+8. El campo "pais" debe ser el código ISO de 3 letras del país emisor (ej: "ESP" para España, "FRA" para Francia, "DEU" para Alemania, etc.).
+9. Devuelve ÚNICAMENTE el bloque JSON crudo sin formato markdown, sin envolverlo en triple comilla invertida (\`\`\`json ... \`\`\`), sin texto adicional, de modo que pueda ser parseado directamente con JSON.parse().
 
 Estructura requerida:
 {
@@ -62,61 +60,37 @@ Estructura requerida:
   "pais": "ESP"
 }`;
 
-    const postData = JSON.stringify({
-      contents: [
-        {
-          parts: [
-            { text: prompt },
-            {
-              inlineData: {
-                mimeType: finalMimeType,
-                data: base64Data
-              }
-            }
-          ]
-        }
-      ]
-    });
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
-    const options = {
-      hostname: 'generativelanguage.googleapis.com',
-      path: `/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    const response = await fetch(geminiUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(postData)
-      }
-    };
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              { text: prompt },
+              {
+                inlineData: {
+                  mimeType: finalMimeType,
+                  data: base64Data
+                }
+              }
+            ]
+          }
+        ]
+      })
+    });
 
-    const callGemini = () => {
-      return new Promise((resolve, reject) => {
-        const reqGem = https.request(options, (resGem) => {
-          let data = '';
-          resGem.on('data', (chunk) => {
-            data += chunk;
-          });
-          resGem.on('end', () => {
-            resolve({ statusCode: resGem.statusCode, data });
-          });
-        });
-
-        reqGem.on('error', (e) => {
-          reject(e);
-        });
-
-        reqGem.write(postData);
-        reqGem.end();
-      });
-    };
-
-    const geminiResult = await callGemini();
-
-    if (geminiResult.statusCode < 200 || geminiResult.statusCode >= 300) {
-      return res.status(geminiResult.statusCode).json({ error: `Error de la API de Gemini (Código ${geminiResult.statusCode}): ${geminiResult.data}` });
+    if (!response.ok) {
+      const errText = await response.text();
+      return res.status(response.status).json({ error: `Error de la API de Gemini: ${errText}` });
     }
 
-    const responseData = JSON.parse(geminiResult.data);
-    const textOutput = responseData.candidates?.[0]?.content?.parts?.[0]?.text;
+    const data = await response.json();
+    const textOutput = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!textOutput) {
       return res.status(500).json({ error: 'La API de Gemini no devolvió ningún contenido útil.' });
@@ -131,12 +105,14 @@ Estructura requerida:
       const parsedData = JSON.parse(cleanJsonText);
       return res.status(200).json(parsedData);
     } catch (parseError) {
+      console.error('Error parseando JSON de Gemini:', cleanJsonText);
       return res.status(500).json({
         error: 'El modelo no devolvió un formato JSON válido.',
         rawText: textOutput
       });
     }
   } catch (err) {
+    console.error('Error en la función de escaneo:', err);
     return res.status(500).json({ error: `Error del servidor: ${err.message}` });
   }
 }
