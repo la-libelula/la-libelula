@@ -18,14 +18,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { image, mimeType } = req.body;
-
-    if (!image) {
-      return res.status(400).json({ error: 'Falta la imagen en el cuerpo de la petición.' });
+    let images = req.body.images;
+    if (req.body.image) {
+      images = [{ base64: req.body.image, mimeType: req.body.mimeType }];
     }
 
-    const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
-    const finalMimeType = mimeType || 'image/jpeg';
+    if (!images || !Array.isArray(images) || images.length === 0) {
+      return res.status(400).json({ error: 'Faltan imágenes en el cuerpo de la petición.' });
+    }
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -77,12 +77,12 @@ Estructura requerida:
               {
                 parts: [
                   { text: prompt },
-                  {
+                  ...images.map(img => ({
                     inlineData: {
-                      mimeType: finalMimeType,
-                      data: base64Data
+                      mimeType: img.mimeType || 'image/jpeg',
+                      data: img.base64.replace(/^data:image\/\w+;base64,/, '')
                     }
-                  }
+                  }))
                 ]
               }
             ]
