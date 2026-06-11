@@ -1,6 +1,10 @@
 {
     "rewrites": [
         {
+            "source": "/api/:path*",
+            "destination": "/api/:path*"
+        },
+        {
             "source": "/reseteo.html",
             "destination": "/reseteo.html"
         },
@@ -17,7 +21,7 @@
             "destination": "/worker-v17.js"
         },
         {
-            "source": "/(.*)",
+            "source": "/((?!api/.*).*)",
             "destination": "/index.html"
         }
     ]
