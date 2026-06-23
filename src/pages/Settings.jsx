@@ -350,11 +350,11 @@ const Settings = () => {
                                     <div>
                                         <label style={labelStyle}><Clock size={14} /> Mínimo de noches</label>
                                         <select value={minStay} onChange={e => setMinStay(e.target.value)} style={inputStyle}>
-                                            <option value="1">1 noche</option>
-                                            <option value="2">2 noches (Estándar)</option>
-                                            <option value="3">3 noches (Puente corto)</option>
-                                            <option value="4">4 noches (Semana Santa/Navidad)</option>
-                                            <option value="5">5 noches</option>
+                                            {Array.from({ length: 30 }, (_, i) => i + 1).map(num => (
+                                                <option key={num} value={num.toString()}>
+                                                    {num} {num === 1 ? 'noche' : 'noches'}{num === 2 ? ' (Estándar)' : ''}{num === 3 ? ' (Puente)' : ''}{num === 4 ? ' (Largo)' : ''}{num === 7 ? ' (Semana)' : ''}{num === 15 ? ' (Quincena)' : ''}{num === 30 ? ' (Mes)' : ''}
+                                                </option>
+                                            ))}
                                         </select>
                                     </div>
 
@@ -467,11 +467,11 @@ const Settings = () => {
                                 <div>
                                     <label style={labelStyle}><Clock size={14} /> Mínimo de noches</label>
                                     <select value={bulkMinStay} onChange={e => setBulkMinStay(e.target.value)} style={inputStyle}>
-                                        <option value="1">1 noche</option>
-                                        <option value="2">2 (Estándar)</option>
-                                        <option value="3">3 (Puente)</option>
-                                        <option value="4">4 (Largo)</option>
-                                        <option value="5">5 noches</option>
+                                        {Array.from({ length: 30 }, (_, i) => i + 1).map(num => (
+                                            <option key={num} value={num.toString()}>
+                                                {num} {num === 1 ? 'noche' : 'noches'}{num === 2 ? ' (Estándar)' : ''}{num === 3 ? ' (Puente)' : ''}{num === 4 ? ' (Largo)' : ''}{num === 7 ? ' (Semana)' : ''}{num === 15 ? ' (Quincena)' : ''}{num === 30 ? ' (Mes)' : ''}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
 
