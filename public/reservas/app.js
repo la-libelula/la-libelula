@@ -1,4 +1,4 @@
-﻿const supabaseUrl = 'https://bclwefmdnjtrqitokmey.supabase.co';
+const supabaseUrl = 'https://bclwefmdnjtrqitokmey.supabase.co';
 const supabaseKey = 'sb_publishable_lkRqb-MVD02sFLmB5ZoTrw_7wrOCYNC';
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
@@ -385,24 +385,10 @@ function calculateStayPrice(startDate, endDate, policy = 'standard') {
 
     if (nights < minStayRequired) return { error: `Mínimo ${minStayRequired} noches para estas fechas`, total: 0 };
     
-    // Si hay un PRECIO MANUAL en alguna de las noches, se inhabilita el pack de semana/mes
-    let hasManualPrice = false;
-    for (let i = 0; i < nights; i++) {
-        let checkDate = new Date(start);
-        checkDate.setDate(checkDate.getDate() + i);
-        const dateStr = formatLocalDate(checkDate);
-        if (calendarSettings.find(s => s.date === dateStr && s.price_override)) {
-            hasManualPrice = true;
-            break;
-        }
-    }
-
-    // Ofertas por volumen (solo si no hay precios manuales)
+    // Ofertas por volumen (prorrateadas, siempre se aplican)
     let baseTotal = 0;
-    if (!hasManualPrice) {
-        if (nights >= 28) baseTotal = PRICES.monthly;
-        else if (nights >= 6) baseTotal = PRICES.weekly;
-    }
+    if (nights >= 30 && PRICES.monthly > 0) baseTotal = Math.round((PRICES.monthly / 30) * nights);
+    else if (nights >= 6 && PRICES.weekly > 0) baseTotal = Math.round((PRICES.weekly / 6) * nights);
 
     if (baseTotal === 0) {
         // Cálculo noche a noche
