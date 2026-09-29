@@ -29,7 +29,8 @@ const Layout = () => {
         { to: '/expenses', icon: ReceiptEuro, label: 'Gastos' },
         { to: '/stats', icon: BarChart3, label: 'Stats' },
         { to: '/history', icon: Clock, label: 'Historial' },
-        { to: '/settings', icon: ShieldCheck, label: 'Precios' },
+          { to: '/alarms', icon: Bell, label: 'Alarmas' },
+          { to: '/settings', icon: ShieldCheck, label: 'Precios' },
     ];
 
     return (

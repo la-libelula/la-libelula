@@ -6,6 +6,7 @@ import Expenses from './pages/Expenses';
 import Stats from './pages/Stats';
 import History from './pages/History';
 import Settings from './pages/Settings';
+import Alarms from './pages/Alarms';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="stats" element={<Stats />} />
         <Route path="history" element={<History />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="alarms" element={<Alarms />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
