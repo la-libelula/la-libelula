@@ -1,5 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { Bell, Activity, Clock, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { Bell, Activity, Clock, CheckCircle2, XCircle, AlertCircle, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const ALARM_TYPES = {
   heating: 'Calefacción',
@@ -26,6 +28,44 @@ const Alarms = () => {
   const [loading, setLoading] = useState(true);
   const [errorSettings, setErrorSettings] = useState(null);
   const [errorLogs, setErrorLogs] = useState(null);
+
+  const { session, signOut, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const [adminStatus, setAdminStatus] = useState('checking'); // 'checking', 'unauthorized', 'forbidden', 'authorized'
+
+  useEffect(() => {
+    if (authLoading) return;
+
+    if (!session) {
+      setAdminStatus('unauthorized');
+      return;
+    }
+
+    const checkAuth = async () => {
+      try {
+        const res = await fetch('/api/alarms/auth-check', {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        });
+        if (res.status === 200) {
+          setAdminStatus('authorized');
+        } else if (res.status === 403) {
+          setAdminStatus('forbidden');
+        } else {
+          setAdminStatus('unauthorized');
+        }
+      } catch {
+        setAdminStatus('unauthorized');
+      }
+    };
+    
+    checkAuth();
+  }, [session, authLoading]);
+
+  const handleLogout = async () => {
+    await signOut();
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -99,13 +139,54 @@ const Alarms = () => {
 
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '2rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
-        <div style={{ backgroundColor: 'var(--color-primary)', padding: '0.75rem', borderRadius: '12px', display: 'flex', color: 'white' }}>
-          <Bell size={24} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ backgroundColor: 'var(--color-primary)', padding: '0.75rem', borderRadius: '12px', display: 'flex', color: 'white' }}>
+            <Bell size={24} />
+          </div>
+          <div>
+            <h1 style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--color-text)', margin: 0 }}>Alarmas</h1>
+            <p style={{ color: 'var(--color-text-muted)', margin: '0.25rem 0 0 0', fontSize: '0.95rem' }}>Configuración y estado de los avisos (Modo Lectura)</p>
+          </div>
         </div>
-        <div>
-          <h1 style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--color-text)', margin: 0 }}>Alarmas</h1>
-          <p style={{ color: 'var(--color-text-muted)', margin: '0.25rem 0 0 0', fontSize: '0.95rem' }}>Configuración y estado de los avisos (Modo Lectura)</p>
+
+        {/* Admin State Zone */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          {authLoading || adminStatus === 'checking' ? (
+            <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Verificando sesión...</div>
+          ) : adminStatus === 'unauthorized' ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Para administrar las alarmas, inicia sesión.</div>
+              <button 
+                onClick={() => navigate('/login')}
+                style={{ padding: '0.5rem 1rem', borderRadius: '8px', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Iniciar sesión
+              </button>
+            </div>
+          ) : adminStatus === 'forbidden' ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div style={{ fontSize: '0.9rem', color: '#991b1b', backgroundColor: '#fee2e2', padding: '0.4rem 0.8rem', borderRadius: '8px' }}>Usuario sin permisos para administrar alarmas.</div>
+              <button 
+                onClick={handleLogout}
+                style={{ padding: '0.5rem 1rem', borderRadius: '8px', backgroundColor: 'white', color: 'var(--color-text)', border: '1px solid var(--color-border)', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                <LogOut size={16} /> Salir
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div style={{ fontSize: '0.9rem', color: '#166534', backgroundColor: '#dcfce7', padding: '0.4rem 0.8rem', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <CheckCircle2 size={16} /> Administrador autenticado
+              </div>
+              <button 
+                onClick={handleLogout}
+                style={{ padding: '0.5rem 1rem', borderRadius: '8px', backgroundColor: 'white', color: 'var(--color-text)', border: '1px solid var(--color-border)', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                <LogOut size={16} /> Salir
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

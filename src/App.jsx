@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+﻿import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard';
 import Bookings from './pages/Bookings';
@@ -7,6 +7,7 @@ import Stats from './pages/Stats';
 import History from './pages/History';
 import Settings from './pages/Settings';
 import Alarms from './pages/Alarms';
+import Login from './pages/Login';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="history" element={<History />} />
         <Route path="settings" element={<Settings />} />
         <Route path="alarms" element={<Alarms />} />
+        <Route path="login" element={<Login />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
