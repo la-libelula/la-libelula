@@ -1,0 +1,22 @@
+﻿import { verifyGlobalAuth } from '../../lib/server/globalAuth.js';
+
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Methods', 'GET');
+  res.setHeader('Cache-Control', 'no-store');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'GET') {
+    return res.status(405).json({ ok: false, error: 'Mtodo no permitido. Utilizar GET.' });
+  }
+
+  const authResult = await verifyGlobalAuth(req);
+
+  if (authResult.status !== 200) {
+    return res.status(authResult.status).json({ ok: false, error: authResult.error });
+  }
+
+  return res.status(200).json({ ok: true, authorized: true });
+}

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Loader2 } from 'lucide-react';
@@ -8,8 +8,14 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [errorMsg, setErrorMsg] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-    const { signIn } = useAuth();
+    const { signIn, session, loading } = useAuth();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!loading && session) {
+            navigate('/');
+        }
+    }, [session, loading, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -18,7 +24,7 @@ const Login = () => {
 
         try {
             await signIn(email, password);
-            navigate('/alarms');
+            navigate('/');
         } catch (err) {
             setErrorMsg('Error de autenticación. Verifica tus credenciales.');
         } finally {

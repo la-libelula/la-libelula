@@ -8,11 +8,13 @@ import History from './pages/History';
 import Settings from './pages/Settings';
 import Alarms from './pages/Alarms';
 import Login from './pages/Login';
+import PrivateRoute from './components/auth/PrivateRoute';
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Layout />}>
+      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
         <Route index element={<Dashboard />} />
         <Route path="bookings" element={<Bookings />} />
         <Route path="expenses" element={<Expenses />} />
@@ -20,7 +22,6 @@ function App() {
         <Route path="history" element={<History />} />
         <Route path="settings" element={<Settings />} />
         <Route path="alarms" element={<Alarms />} />
-        <Route path="login" element={<Login />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
