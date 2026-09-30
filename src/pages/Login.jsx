@@ -7,8 +7,10 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errorMsg, setErrorMsg] = useState(null);
+    const [resetMsg, setResetMsg] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-    const { signIn, session, loading } = useAuth();
+    const [isResetting, setIsResetting] = useState(false);
+    const { signIn, session, loading, resetPassword } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -20,6 +22,7 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrorMsg(null);
+        setResetMsg(null);
         setIsLoading(true);
 
         try {
@@ -29,6 +32,26 @@ const Login = () => {
             setErrorMsg('Error de autenticación. Verifica tus credenciales.');
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleResetPassword = async () => {
+        if (!email) {
+            setErrorMsg('Por favor, introduce tu email para recuperar la contraseña.');
+            return;
+        }
+        
+        setErrorMsg(null);
+        setResetMsg(null);
+        setIsResetting(true);
+        
+        try {
+            await resetPassword(email);
+            setResetMsg('Si existe una cuenta asociada a ese correo, recibirás un enlace para restablecer la contraseña.');
+        } catch (err) {
+            setErrorMsg('Se ha producido un error al intentar solicitar la recuperación.');
+        } finally {
+            setIsResetting(false);
         }
     };
 
@@ -42,6 +65,12 @@ const Login = () => {
             {errorMsg && (
                 <div style={{ padding: '0.75rem', marginBottom: '1.5rem', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '8px', fontSize: '0.9rem', textAlign: 'center' }}>
                     {errorMsg}
+                </div>
+            )}
+            
+            {resetMsg && (
+                <div style={{ padding: '0.75rem', marginBottom: '1.5rem', backgroundColor: '#e0f2fe', color: '#0369a1', borderRadius: '8px', fontSize: '0.9rem', textAlign: 'center' }}>
+                    {resetMsg}
                 </div>
             )}
 
@@ -66,10 +95,22 @@ const Login = () => {
                         style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}
                     />
                 </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <button 
+                        type="button" 
+                        onClick={handleResetPassword}
+                        disabled={isResetting}
+                        style={{ background: 'none', border: 'none', color: 'var(--color-primary)', fontSize: '0.85rem', cursor: isResetting ? 'not-allowed' : 'pointer', textDecoration: 'underline' }}
+                    >
+                        {isResetting ? 'Solicitando...' : '¿Has olvidado tu contraseña?'}
+                    </button>
+                </div>
+
                 <button 
                     type="submit" 
                     disabled={isLoading}
-                    style={{ marginTop: '1rem', padding: '0.75rem', borderRadius: '8px', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', fontWeight: 600, cursor: isLoading ? 'not-allowed' : 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                    style={{ marginTop: '0.5rem', padding: '0.75rem', borderRadius: '8px', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', fontWeight: 600, cursor: isLoading ? 'not-allowed' : 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
                 >
                     {isLoading ? <Loader2 className="animate-spin" size={20} /> : 'Iniciar sesión'}
                 </button>

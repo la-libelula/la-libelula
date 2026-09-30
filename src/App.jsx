@@ -8,12 +8,14 @@ import History from './pages/History';
 import Settings from './pages/Settings';
 import Alarms from './pages/Alarms';
 import Login from './pages/Login';
+import ResetPassword from './pages/ResetPassword';
 import PrivateRoute from './components/auth/PrivateRoute';
 
 function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
         <Route index element={<Dashboard />} />
         <Route path="bookings" element={<Bookings />} />
