@@ -49,7 +49,7 @@ const Login = () => {
             await resetPassword(email);
             setResetMsg('Si existe una cuenta asociada a ese correo, recibirás un enlace para restablecer la contraseña.');
         } catch (err) {
-            setErrorMsg('Se ha producido un error al intentar solicitar la recuperación.');
+            setErrorMsg(err?.message || 'Se ha producido un error al intentar solicitar la recuperación.');
         } finally {
             setIsResetting(false);
         }
