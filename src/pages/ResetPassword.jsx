@@ -41,7 +41,7 @@ const ResetPassword = () => {
             // Sign out the temporary recovery session so they can login properly
             await signOut();
         } catch (err) {
-            setErrorMsg('Se ha producido un error al intentar cambiar la contraseña.');
+            setErrorMsg(err?.message || 'Se ha producido un error al intentar cambiar la contraseña.');
         } finally {
             setIsLoading(false);
         }
