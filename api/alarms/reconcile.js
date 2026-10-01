@@ -26,9 +26,7 @@ export default async function handler(req, res) {
     const pastStr = getMadridDateString(pastDate);
     const futureStr = getMadridDateString(futureDate);
 
-    const activePastStr = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const activeFutureStr = new Date(now.getTime() + 45 * 24 * 60 * 60 * 1000).toISOString();
-
+    
     const { data: bookingsData, error: bookingsError } = await supabase
       .from('bookings')
       .select('id, check_in, check_out, house_id')
@@ -47,8 +45,7 @@ export default async function handler(req, res) {
       .from('alarm_log')
       .select('id, booking_id, house_id, alarm_type, scheduled_for, status, sent_at, retry_count, last_attempt_at')
       .in('status', ['pending', 'failed'])
-      .gte('scheduled_for', activePastStr)
-      .lte('scheduled_for', activeFutureStr);
+      ;
     if (activeLogsError) throw activeLogsError;
 
     let historicalLogs = [];
@@ -102,14 +99,21 @@ export default async function handler(req, res) {
     // Escritura conservadora. 1. TO_OBSOLETE
     if (result.toObsolete.length > 0) {
       const obsoleteIds = result.toObsolete.map(o => o.log_id);
-      const { error: obsError } = await supabase
+      const { data: obsData, error: obsError } = await supabase
         .from('alarm_log')
         .update({ status: 'obsolete' })
-        .in('id', obsoleteIds);
+        .in('id', obsoleteIds)
+        .in('status', ['pending', 'failed'])
+        .select('id');
         
       if (obsError) {
         console.error('Error in TO_OBSOLETE:', obsError);
         return res.status(500).json({ ok: false, error: 'Failed to apply obsolete status' });
+      }
+      
+      if (!obsData || obsData.length !== obsoleteIds.length) {
+        console.warn('Race condition in TO_OBSOLETE:', { requested: obsoleteIds.length, actual: obsData?.length });
+        return res.status(409).json({ ok: false, error: 'Conflicto de concurrencia: el estado de los avisos cambió antes de la escritura.' });
       }
     }
 

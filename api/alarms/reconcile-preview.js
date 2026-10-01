@@ -29,9 +29,7 @@ export default async function handler(req, res) {
     const futureStr = getMadridDateString(futureDate);
 
     // Bounded active logs dates
-    const activePastStr = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const activeFutureStr = new Date(now.getTime() + 45 * 24 * 60 * 60 * 1000).toISOString();
-
+    
     const { data: bookingsData, error: bookingsError } = await supabase
       .from('bookings')
       .select('id, check_in, check_out, house_id')
@@ -51,8 +49,7 @@ export default async function handler(req, res) {
       .from('alarm_log')
       .select('id, booking_id, house_id, alarm_type, scheduled_for, status, sent_at, retry_count, last_attempt_at')
       .in('status', ['pending', 'failed'])
-      .gte('scheduled_for', activePastStr)
-      .lte('scheduled_for', activeFutureStr);
+      ;
     if (activeLogsError) throw activeLogsError;
 
     let historicalLogs = [];
