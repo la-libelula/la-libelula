@@ -144,8 +144,8 @@ const Alarms = () => {
           .alarms-mobile-only { display: inline-flex !important; justify-content: center; width: 100%; }
           .alarms-config-padding { padding: 1rem 0.5rem !important; }
           .alarms-config-grid { 
-            grid-template-columns: 2fr 35px 2fr 1.2fr !important; 
-            gap: 0.25rem !important; 
+            grid-template-columns: 1.8fr 50px 2.2fr 1fr !important; 
+            gap: 0.5rem !important; 
             font-size: 0.85rem !important; 
           }
           .alarms-status-cell { justify-content: center !important; }
@@ -304,6 +304,7 @@ const Alarms = () => {
 };
 
 export default Alarms;
+
 
 
 
