@@ -28,6 +28,11 @@ const Alarms = () => {
   const [isSaving, setIsSaving] = useState({});
   const [saveError, setSaveError] = useState({});
   const [saveSuccess, setSaveSuccess] = useState({});
+
+  const [previewData, setPreviewData] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState(null);
+
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorSettings, setErrorSettings] = useState(null);
@@ -137,6 +142,36 @@ const Alarms = () => {
     }));
     setSaveError(prev => ({ ...prev, [id]: null }));
     setSaveSuccess(prev => ({ ...prev, [id]: false }));
+  };
+
+
+  const DIAGNOSTIC_REASONS = {
+    invalid_check_in: 'Fecha de entrada no válida',
+    invalid_alarm_time: 'Hora no válida',
+    invalid_days_before: 'Antelación no válida',
+    unsupported_house: 'Casa no reconocida',
+    ambiguous_local_time: 'Hora local ambigua por cambio horario',
+    nonexistent_local_time: 'Hora local inexistente por cambio horario'
+  };
+
+  const handleFetchPreview = async () => {
+    if (!session?.access_token) return;
+    setPreviewLoading(true);
+    setPreviewError(null);
+    try {
+      const response = await fetch('/api/alarms/preview', {
+        headers: { 'Authorization': 'Bearer ' + session.access_token }
+      });
+      const data = await response.json();
+      if (!response.ok || data.ok !== true) {
+        throw new Error(data.error || 'No se pudo cargar la previsualización');
+      }
+      setPreviewData(data);
+    } catch (err) {
+      setPreviewError(err.message);
+    } finally {
+      setPreviewLoading(false);
+    }
   };
 
   const handleSave = async (id) => {
@@ -337,6 +372,88 @@ const Alarms = () => {
               </div>
             </div>
           ))}
+
+          
+          <div style={{ marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', marginTop: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--color-text)' }}>Próximos avisos</h2>
+              <button 
+                onClick={handleFetchPreview}
+                disabled={previewLoading}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: 'var(--color-primary)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  cursor: previewLoading ? 'not-allowed' : 'pointer',
+                  opacity: previewLoading ? 0.7 : 1
+                }}
+              >
+                {previewLoading ? 'Calculando...' : (previewData ? 'Actualizar previsualización' : 'Previsualizar próximos avisos')}
+              </button>
+            </div>
+            
+            {previewError && (
+              <div style={{ padding: '1rem', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '8px', marginBottom: '1rem' }}>
+                Error: {previewError}
+              </div>
+            )}
+            
+            {previewData && (
+              <div style={{ backgroundColor: 'white', borderRadius: '12px', border: '1px solid var(--color-border)', padding: '1.5rem' }}>
+                <div style={{ display: 'flex', gap: '2rem', marginBottom: '1.5rem', color: 'var(--color-text-muted)' }}>
+                  <div>Reservas analizadas: <strong style={{ color: 'var(--color-text)' }}>{previewData.booking_count}</strong></div>
+                  <div>Avisos calculados: <strong style={{ color: 'var(--color-text)' }}>{previewData.alarm_count}</strong></div>
+                </div>
+
+                {previewData.diagnostics && previewData.diagnostics.length > 0 && (
+                  <div style={{ marginBottom: '1.5rem', border: '1px solid #fecaca', borderRadius: '8px', overflow: 'hidden' }}>
+                    <div style={{ backgroundColor: '#fee2e2', padding: '0.75rem 1rem', color: '#991b1b', fontWeight: '600' }}>Diagnósticos</div>
+                    <div style={{ backgroundColor: 'white', padding: '1rem' }}>
+                      {previewData.diagnostics.map((diag, idx) => (
+                        <div key={idx} style={{ marginBottom: '0.5rem', color: '#7f1d1d', fontSize: '0.9rem' }}>
+                          <span style={{ fontWeight: '600' }}>{HOUSES[diag.house_id] || diag.house_id}</span> - {ALARM_TYPES[diag.alarm_type] || diag.alarm_type}: {DIAGNOSTIC_REASONS[diag.reason] || diag.reason}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {previewData.alarms && previewData.alarms.length > 0 ? (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '700px' }}>
+                      <thead style={{ backgroundColor: '#f8fafc', color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
+                        <tr>
+                          <th style={{ padding: '1rem', borderBottom: '1px solid var(--color-border)' }}>Casa</th>
+                          <th style={{ padding: '1rem', borderBottom: '1px solid var(--color-border)' }}>Tarea</th>
+                          <th style={{ padding: '1rem', borderBottom: '1px solid var(--color-border)' }}>Entrada</th>
+                          <th style={{ padding: '1rem', borderBottom: '1px solid var(--color-border)' }}>Antelación</th>
+                          <th style={{ padding: '1rem', borderBottom: '1px solid var(--color-border)' }}>Hora</th>
+                          <th style={{ padding: '1rem', borderBottom: '1px solid var(--color-border)' }}>Fecha/hora prevista local</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {previewData.alarms.map((alarm, idx) => (
+                          <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '1rem', fontSize: '0.9rem', fontWeight: 500 }}>{HOUSES[alarm.house_id] || alarm.house_id}</td>
+                            <td style={{ padding: '1rem', fontSize: '0.9rem' }}>{ALARM_TYPES[alarm.alarm_type] || alarm.alarm_type}</td>
+                            <td style={{ padding: '1rem', fontSize: '0.9rem' }}>{alarm.check_in}</td>
+                            <td style={{ padding: '1rem', fontSize: '0.9rem' }}>{alarm.days_before === 0 ? 'Mismo día' : alarm.days_before + (alarm.days_before > 1 ? ' días antes' : ' día antes')}</td>
+                            <td style={{ padding: '1rem', fontSize: '0.9rem' }}>{alarm.alarm_time}</td>
+                            <td style={{ padding: '1rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-primary)' }}>{alarm.scheduled_local.replace('T', ' ')}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '1rem' }}>No hay avisos próximos calculados.</div>
+                )}
+              </div>
+            )}
+          </div>
 
           <div>
             <h2 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--color-text)', marginBottom: '1rem', marginTop: '1rem' }}>Últimos avisos</h2>
