@@ -139,6 +139,7 @@ const Alarms = () => {
 
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '2rem' }}>
+      <style>{`@media (max-width: 768px) { .alarms-desktop-only { display: none !important; } }`}</style>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <div style={{ backgroundColor: 'var(--color-primary)', padding: '0.75rem', borderRadius: '12px', display: 'flex', color: 'white' }}>
@@ -146,17 +147,17 @@ const Alarms = () => {
           </div>
           <div>
             <h1 style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--color-text)', margin: 0 }}>Alarmas</h1>
-            <p style={{ color: 'var(--color-text-muted)', margin: '0.25rem 0 0 0', fontSize: '0.95rem' }}>Configuración y estado de los avisos (Modo Lectura)</p>
+            <p className="alarms-desktop-only" style={{ color: 'var(--color-text-muted)', margin: '0.25rem 0 0 0', fontSize: '0.95rem' }}>Configuración y estado de los avisos (Modo Lectura)</p>
           </div>
         </div>
 
         {/* Admin State Zone */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           {authLoading || adminStatus === 'checking' ? (
-            <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Verificando sesión...</div>
+            <div className="alarms-desktop-only" style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Verificando sesión...</div>
           ) : adminStatus === 'unauthorized' ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Para administrar las alarmas, inicia sesión.</div>
+              <div className="alarms-desktop-only" style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Para administrar las alarmas, inicia sesión.</div>
               <button 
                 onClick={() => navigate('/login')}
                 style={{ padding: '0.5rem 1rem', borderRadius: '8px', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer' }}
@@ -166,25 +167,13 @@ const Alarms = () => {
             </div>
           ) : adminStatus === 'forbidden' ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ fontSize: '0.9rem', color: '#991b1b', backgroundColor: '#fee2e2', padding: '0.4rem 0.8rem', borderRadius: '8px' }}>Usuario sin permisos para administrar alarmas.</div>
-              <button 
-                onClick={handleLogout}
-                style={{ padding: '0.5rem 1rem', borderRadius: '8px', backgroundColor: 'white', color: 'var(--color-text)', border: '1px solid var(--color-border)', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-              >
-                <LogOut size={16} /> Salir
-              </button>
+              <div className="alarms-desktop-only" style={{ fontSize: '0.9rem', color: '#991b1b', backgroundColor: '#fee2e2', padding: '0.4rem 0.8rem', borderRadius: '8px' }}>Usuario sin permisos para administrar alarmas.</div>
             </div>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ fontSize: '0.9rem', color: '#166534', backgroundColor: '#dcfce7', padding: '0.4rem 0.8rem', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div className="alarms-desktop-only" style={{ fontSize: '0.9rem', color: '#166534', backgroundColor: '#dcfce7', padding: '0.4rem 0.8rem', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <CheckCircle2 size={16} /> Administrador autenticado
               </div>
-              <button 
-                onClick={handleLogout}
-                style={{ padding: '0.5rem 1rem', borderRadius: '8px', backgroundColor: 'white', color: 'var(--color-text)', border: '1px solid var(--color-border)', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-              >
-                <LogOut size={16} /> Salir
-              </button>
             </div>
           )}
         </div>
@@ -298,3 +287,7 @@ const Alarms = () => {
 };
 
 export default Alarms;
+
+
+
+

@@ -254,6 +254,7 @@ const Layout = () => {
                         flexDirection: 'column',
                         position: 'fixed',
                         height: '100vh',
+                        overflowY: 'auto',
                         left: 0,
                         top: 0,
                         zIndex: 10
@@ -507,6 +508,7 @@ const Layout = () => {
 };
 
 export default Layout;
+
 
 
 
