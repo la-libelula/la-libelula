@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+﻿import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { db_viajeros } from '../lib/firebase_viajeros';
 import { collection, addDoc } from 'firebase/firestore';
@@ -12,7 +12,6 @@ export const AppProvider = ({ children }) => {
     const [calendarSettings, setCalendarSettings] = useState([]);
     const [houses, setHouses] = useState(HOUSES); // Iniciar con los nombres por defecto
     const [loading, setLoading] = useState(true);
-    const [isSettingsAuthorized, setIsSettingsAuthorized] = useState(false);
 
     const fetchData = useCallback(async () => {
         try {
@@ -458,8 +457,6 @@ export const AppProvider = ({ children }) => {
                 updateHouseSettings,
                 deleteBulkCalendarSettings,
                 deleteCalendarSetting,
-                isSettingsAuthorized,
-                setIsSettingsAuthorized
             }}
         >
             {children}

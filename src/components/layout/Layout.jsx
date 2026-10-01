@@ -2,16 +2,14 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { LayoutDashboard, CalendarDays, ReceiptEuro, BarChart3, Home, Clock, Menu, X as CloseIcon, LogOut, User, ShieldCheck, HelpCircle, Bell, BellOff, Link as LinkIcon, CheckCircle2 } from 'lucide-react';
 import HelpModal from '../ui/HelpModal.jsx';
-import PinModal from '../ui/PinModal.jsx';
 import { useApp } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const Layout = () => {
     const [isHelpOpen, setIsHelpOpen] = useState(false);
-    const [isPinModalOpen, setIsPinModalOpen] = useState(false);
     const [showCopyToast, setShowCopyToast] = useState(false);
-    const { visualNotification, setVisualNotification, isSettingsAuthorized, setIsSettingsAuthorized } = useApp();
+    const { visualNotification, setVisualNotification } = useApp();
     const navigate = useNavigate();
     const { signOut } = useAuth();
     const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -49,15 +47,6 @@ const Layout = () => {
     return (
         <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--color-background)', flexDirection: 'column' }}>
             <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
-            <PinModal 
-                isOpen={isPinModalOpen} 
-                onClose={() => setIsPinModalOpen(false)} 
-                onSuccess={() => {
-                    setIsPinModalOpen(false);
-                    setIsSettingsAuthorized(true);
-                    navigate('/settings');
-                }} 
-            />
 
             {/* Visual Notification Toast */}
             {visualNotification && (
@@ -293,12 +282,6 @@ const Layout = () => {
                             <NavLink
                                 key={item.to}
                                 to={item.to}
-                                onClick={(e) => {
-                                    if (item.to === '/settings' && !isSettingsAuthorized) {
-                                        e.preventDefault();
-                                        setIsPinModalOpen(true);
-                                    }
-                                }}
                                 className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}
                                 style={({ isActive }) => ({
                                     display: 'flex',
@@ -451,12 +434,6 @@ const Layout = () => {
                     <NavLink
                         key={item.to}
                         to={item.to}
-                        onClick={(e) => {
-                            if (item.to === '/settings' && !isSettingsAuthorized) {
-                                e.preventDefault();
-                                setIsPinModalOpen(true);
-                            }
-                        }}
                         style={({ isActive }) => ({
                             display: 'flex',
                             flexDirection: 'column',
@@ -508,6 +485,8 @@ const Layout = () => {
 };
 
 export default Layout;
+
+
 
 
 
