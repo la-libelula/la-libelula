@@ -24,6 +24,10 @@ const STATUS_LABELS = {
 
 const Alarms = () => {
   const [settings, setSettings] = useState([]);
+  const [drafts, setDrafts] = useState({});
+  const [isSaving, setIsSaving] = useState({});
+  const [saveError, setSaveError] = useState({});
+  const [saveSuccess, setSaveSuccess] = useState({});
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorSettings, setErrorSettings] = useState(null);
@@ -112,6 +116,76 @@ const Alarms = () => {
     }
   };
 
+  const handleDraftChange = (id, field, value) => {
+    setDrafts(prev => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        [field]: value
+      }
+    }));
+    setSaveError(prev => ({ ...prev, [id]: null }));
+    setSaveSuccess(prev => ({ ...prev, [id]: false }));
+  };
+
+  const handleSave = async (id) => {
+    const draft = drafts[id];
+    if (!draft) return;
+    
+    setIsSaving(prev => ({ ...prev, [id]: true }));
+    setSaveError(prev => ({ ...prev, [id]: null }));
+    setSaveSuccess(prev => ({ ...prev, [id]: false }));
+
+    try {
+      const response = await fetch('/api/alarms/settings', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + session.access_token
+        },
+        body: JSON.stringify({
+          id: id,
+          is_enabled: draft.is_enabled,
+          days_before: parseInt(draft.days_before, 10),
+          alarm_time: draft.alarm_time
+        })
+      });
+
+      const result = await response.json();
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error || 'No se pudo guardar la configuración');
+      }
+
+      setSettings(prev => prev.map(st => st.id === id ? result.setting : st));
+      
+      setDrafts(prev => ({
+        ...prev,
+        [id]: {
+          is_enabled: result.setting.is_enabled,
+          days_before: result.setting.days_before,
+          alarm_time: result.setting.alarm_time.slice(0, 5)
+        }
+      }));
+      setSaveSuccess(prev => ({ ...prev, [id]: true }));
+      setTimeout(() => setSaveSuccess(prev => ({ ...prev, [id]: false })), 3000);
+      
+    } catch (err) {
+      console.error(err);
+      setSaveError(prev => ({ ...prev, [id]: err.message }));
+    } finally {
+      setIsSaving(prev => ({ ...prev, [id]: false }));
+    }
+  };
+
+  const hasDraftChanged = (id) => {
+    const originalSetting = settings.find(st => st.id === id);
+    const draft = drafts[id];
+    if (!originalSetting || !draft) return false;
+    return originalSetting.is_enabled !== draft.is_enabled ||
+           originalSetting.days_before !== parseInt(draft.days_before, 10) ||
+           originalSetting.alarm_time.slice(0, 5) !== draft.alarm_time;
+  };
+
   const getHouseSettings = (houseId) => settings.filter(s => s.house_id === houseId);
 
   return (
@@ -140,7 +214,7 @@ const Alarms = () => {
           </div>
           <div>
             <h1 style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--color-text)', margin: 0 }}>Alarmas</h1>
-            <p className="alarms-desktop-only" style={{ color: 'var(--color-text-muted)', margin: '0.25rem 0 0 0', fontSize: '0.95rem' }}>Configuración y estado de los avisos (Modo Lectura)</p>
+            <p className="alarms-desktop-only" style={{ color: 'var(--color-text-muted)', margin: '0.25rem 0 0 0', fontSize: '0.95rem' }}>Configuración y estado de los avisos</p>
           </div>
         </div>
 
@@ -168,31 +242,84 @@ const Alarms = () => {
               <div className="alarms-config-padding" style={{ padding: '1.5rem' }}>
                 <div className="alarms-config-grid" style={{ display: 'grid', gap: '1rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #f1f5f9' }}>
                   <div>Tarea</div>
-                  <div className="alarms-status-header">Estado</div>
+                  <div className="alarms-status-header">Activa</div>
                   <div>Antelación</div>
                   <div>Hora</div>
+                  <div className="alarms-desktop-only" style={{ textAlign: 'right' }}>Acción</div>
                 </div>
-                {getHouseSettings(houseId).map(setting => (
-                  <div key={setting.id} className="alarms-config-grid" style={{ display: 'grid', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
-                    <div style={{ fontWeight: 500 }}>{ALARM_TYPES[setting.alarm_type] || setting.alarm_type}</div>
-                    <div className="alarms-status-cell" style={{ display: 'flex' }}>
-                      <span className="alarms-status-badge" style={{ 
-                        display: 'inline-block', 
-                        padding: '4px 12px', 
-                        borderRadius: '20px', 
-                        fontSize: '0.8rem', 
-                        fontWeight: 600,
-                        backgroundColor: setting.is_enabled ? '#dcfce7' : '#f1f5f9',
-                        color: setting.is_enabled ? '#166534' : '#64748b'
-                      }}>
-                        <span className="alarms-desktop-only">{setting.is_enabled ? 'Activada' : 'Desactivada'}</span>
-                        <span className="alarms-mobile-only">{setting.is_enabled ? 'A' : 'D'}</span>
-                      </span>
+                {getHouseSettings(houseId).map(setting => {
+                  const draft = drafts[setting.id];
+                  if (!draft) return null;
+                  const changed = hasDraftChanged(setting.id);
+                  const saving = isSaving[setting.id];
+                  const sError = saveError[setting.id];
+                  const sSuccess = saveSuccess[setting.id];
+
+                  return (
+                  <div key={setting.id} style={{ marginBottom: '1.5rem' }}>
+                    <div className="alarms-config-grid" style={{ display: 'grid', gap: '1rem' }}>
+                      <div style={{ fontWeight: 500 }}>{ALARM_TYPES[setting.alarm_type] || setting.alarm_type}</div>
+                      
+                      <div className="alarms-status-cell" style={{ display: 'flex', alignItems: 'center' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={draft.is_enabled} 
+                          onChange={(e) => handleDraftChange(setting.id, 'is_enabled', e.target.checked)}
+                          disabled={saving}
+                          style={{ width: '1.2rem', height: '1.2rem', cursor: 'pointer' }}
+                        />
+                      </div>
+                      
+                      <div>
+                        <select 
+                          value={draft.days_before} 
+                          onChange={(e) => handleDraftChange(setting.id, 'days_before', e.target.value)}
+                          disabled={saving}
+                          style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid var(--color-border)', width: '100%', maxWidth: '120px' }}
+                        >
+                          {[0, 1, 2, 3, 4, 5, 6, 7].map(d => (
+                            <option key={d} value={d}>{d === 0 ? 'Mismo día' : d + (d > 1 ? ' días antes' : ' día antes')}</option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <input 
+                          type="time" 
+                          value={draft.alarm_time}
+                          onChange={(e) => handleDraftChange(setting.id, 'alarm_time', e.target.value)}
+                          disabled={saving}
+                          style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid var(--color-border)', width: '100%', maxWidth: '120px' }}
+                        />
+                      </div>
+                      
+                      <div className="alarms-action-col">
+                        <button
+                          onClick={() => handleSave(setting.id)}
+                          disabled={saving || !changed}
+                          style={{
+                            padding: '0.5rem 1rem',
+                            backgroundColor: changed ? 'var(--color-primary)' : '#e2e8f0',
+                            color: changed ? (saving ? '#1e293b' : 'white') : '#94a3b8',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontWeight: '600',
+                            cursor: changed && !saving ? 'pointer' : 'not-allowed',
+                            transition: 'all 0.2s',
+                            width: 'fit-content'
+                          }}
+                        >
+                          {saving ? 'Guardando...' : sSuccess ? 'Guardado' : 'Guardar'}
+                        </button>
+                      </div>
                     </div>
-                    <div>{formatDays(setting.days_before)}</div>
-                    <div>{setting.alarm_time.slice(0, 5)}</div>
+                    {sError && (
+                      <div style={{ color: '#991b1b', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+                        Error: {sError}
+                      </div>
+                    )}
                   </div>
-                ))}
+                )})}
                 {getHouseSettings(houseId).length === 0 && (
                   <div style={{ color: 'var(--color-text-muted)' }}>No hay configuración disponible.</div>
                 )}
