@@ -4,14 +4,12 @@ import { getMadridDateString } from '../../lib/server/alarmSchedule.js';
 import { calculateReconciliation } from '../../lib/server/alarmReconciliation.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Cache-Control', 'no-store');
-
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Mtodo no permitido. Utilizar GET.' });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Método no permitido. Utilizar POST.' });
   }
 
   const authResult = await verifyGlobalAuth(req);
@@ -28,7 +26,6 @@ export default async function handler(req, res) {
     const pastStr = getMadridDateString(pastDate);
     const futureStr = getMadridDateString(futureDate);
 
-    // Bounded active logs dates
     const activePastStr = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
     const activeFutureStr = new Date(now.getTime() + 45 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -46,7 +43,6 @@ export default async function handler(req, res) {
 
     const horizonBookingIds = bookingsData.map(b => b.id);
     
-    // Lectura acotada de logs activos
     const { data: activeLogs, error: activeLogsError } = await supabase
       .from('alarm_log')
       .select('id, booking_id, house_id, alarm_type, scheduled_for, status, sent_at, retry_count, last_attempt_at')
@@ -94,22 +90,60 @@ export default async function handler(req, res) {
       now
     });
 
+    if (result.conflicts.length > 0 || result.diagnostics.length > 0) {
+      return res.status(409).json({
+        ok: false,
+        error: 'Conflictos o diagnósticos detectados. No se puede escribir.',
+        conflicts: result.conflicts.length,
+        diagnostics: result.diagnostics.length
+      });
+    }
+
+    // Escritura conservadora. 1. TO_OBSOLETE
+    if (result.toObsolete.length > 0) {
+      const obsoleteIds = result.toObsolete.map(o => o.log_id);
+      const { error: obsError } = await supabase
+        .from('alarm_log')
+        .update({ status: 'obsolete' })
+        .in('id', obsoleteIds);
+        
+      if (obsError) {
+        console.error('Error in TO_OBSOLETE:', obsError);
+        return res.status(500).json({ ok: false, error: 'Failed to apply obsolete status' });
+      }
+    }
+
+    // 2. TO_CREATE
+    if (result.toCreate.length > 0) {
+      const insertRows = result.toCreate.map(c => ({
+        booking_id: c.booking_id,
+        house_id: c.house_id,
+        alarm_type: c.alarm_type,
+        scheduled_for: c.scheduled_for,
+        status: 'pending'
+      }));
+
+      const { error: insError } = await supabase
+        .from('alarm_log')
+        .upsert(insertRows, { onConflict: 'booking_id,alarm_type,scheduled_for', ignoreDuplicates: true });
+        
+      if (insError) {
+        console.error('Error in TO_CREATE:', insError);
+        return res.status(500).json({ ok: false, error: 'Failed to create new alarms' });
+      }
+    }
+
     return res.status(200).json({
       ok: true,
-      dry_run: true,
-      timezone: 'Europe/Madrid',
+      reconciled: true,
       generated_at: now.toISOString(),
       summary: {
-        bookings_analyzed: bookingsData.length,
-        settings_analyzed: settingsData.length,
-        logs_analyzed: activeLogs.length + historicalLogs.length,
-        to_create: result.toCreate.length,
-        to_obsolete: result.toObsolete.length,
+        created_requested: result.toCreate.length,
+        obsoleted_requested: result.toObsolete.length,
         unchanged: result.unchanged.length,
         skipped_past: result.skippedPast.length,
         conflicts: result.conflicts.length
-      },
-      ...result
+      }
     });
   } catch (err) {
     console.error(err);

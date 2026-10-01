@@ -37,6 +37,51 @@ const Alarms = () => {
   const [reconcileLoading, setReconcileLoading] = useState(false);
   const [reconcileError, setReconcileError] = useState(null);
 
+  const [applyLoading, setApplyLoading] = useState(false);
+  const [applySuccessMessage, setApplySuccessMessage] = useState('');
+
+  const handleApplyReconcile = async () => {
+    if (!session?.access_token) return;
+    
+    const confirmMessage = "Esta acción actualizará el registro interno de alarmas.\nNo enviará ningún aviso por Telegram.\n¿Quieres continuar?";
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    setApplyLoading(true);
+    setReconcileError(null);
+    setApplySuccessMessage('');
+
+    try {
+      const response = await fetch('/api/alarms/reconcile', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + session.access_token }
+      });
+      const data = await response.json();
+      if (!response.ok || data.ok !== true) {
+        throw new Error(data.error || 'No se pudo aplicar la reconciliación');
+      }
+      
+      const msg = `Reconciliación aplicada correctamente. Creados solicitados: ${data.summary.created_requested} | Obsoletos solicitados: ${data.summary.obsoleted_requested} | Sin cambios: ${data.summary.unchanged} | Pasados no creados: ${data.summary.skipped_past}`;
+      setApplySuccessMessage(msg);
+
+      // Refresh data
+      await handleFetchReconcile();
+      const logsResp = await fetch('/api/alarms/log', { headers: { 'Authorization': 'Bearer ' + session.access_token } });
+      if (logsResp.ok) {
+        const logsData = await logsResp.json();
+        if (logsData.ok && logsData.logs) {
+          setLogs(logsData.logs);
+        }
+      }
+    } catch (err) {
+      setReconcileError(err.message);
+    } finally {
+      setApplyLoading(false);
+    }
+  };
+
+
 
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -493,25 +538,56 @@ const handleFetchPreview = async () => {
           <div style={{ marginBottom: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', marginTop: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
               <h2 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--color-text)' }}>Simulación de reconciliación</h2>
-              <button 
-                onClick={handleFetchReconcile}
-                disabled={reconcileLoading}
-                style={{
-                  padding: '0.5rem 1rem',
-                  backgroundColor: 'var(--color-secondary, #64748b)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontWeight: '600',
-                  cursor: reconcileLoading ? 'not-allowed' : 'pointer',
-                  opacity: reconcileLoading ? 0.7 : 1
-                }}
-              >
-                {reconcileLoading ? 'Calculando...' : 'Simular reconciliación'}
-              </button>
+              
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button 
+                  onClick={handleFetchReconcile}
+                  disabled={reconcileLoading || applyLoading}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor: 'var(--color-secondary, #64748b)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    cursor: (reconcileLoading || applyLoading) ? 'not-allowed' : 'pointer',
+                    opacity: (reconcileLoading || applyLoading) ? 0.7 : 1
+                  }}
+                >
+                  {reconcileLoading ? 'Calculando...' : 'Simular reconciliación'}
+                </button>
+
+                {reconcileData && (
+                  <button 
+                    onClick={handleApplyReconcile}
+                    disabled={reconcileLoading || applyLoading || (reconcileData.conflicts && reconcileData.conflicts.length > 0) || (reconcileData.diagnostics && reconcileData.diagnostics.length > 0)}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      backgroundColor: (reconcileData.conflicts?.length > 0 || reconcileData.diagnostics?.length > 0) ? '#9ca3af' : 'var(--color-primary, #0d9488)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontWeight: '600',
+                      cursor: (reconcileLoading || applyLoading || reconcileData.conflicts?.length > 0 || reconcileData.diagnostics?.length > 0) ? 'not-allowed' : 'pointer',
+                      opacity: (reconcileLoading || applyLoading) ? 0.7 : 1
+                    }}
+                  >
+                    {applyLoading ? 'Aplicando...' : 'Aplicar reconciliación'}
+                  </button>
+                )}
+              </div>
+
             </div>
             
+            
+            {applySuccessMessage && (
+              <div style={{ padding: '1rem', backgroundColor: '#dcfce7', color: '#166534', borderRadius: '8px', marginBottom: '1rem', fontWeight: '500' }}>
+                {applySuccessMessage}
+              </div>
+            )}
+            
             {reconcileError && (
+
               <div style={{ padding: '1rem', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '8px', marginBottom: '1rem' }}>
                 Error: {reconcileError}
               </div>
