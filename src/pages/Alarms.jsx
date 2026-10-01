@@ -59,7 +59,18 @@ const Alarms = () => {
 
         if (settingsRes && settingsRes.ok) {
           const sData = await settingsRes.json();
-          if (sData.ok) setSettings(sData.settings);
+          if (sData.ok) {
+            setSettings(sData.settings);
+            const initialDrafts = {};
+            sData.settings.forEach(st => {
+              initialDrafts[st.id] = {
+                is_enabled: st.is_enabled,
+                days_before: st.days_before,
+                alarm_time: st.alarm_time ? st.alarm_time.slice(0, 5) : ''
+              };
+            });
+            setDrafts(initialDrafts);
+          }
           else setErrorSettings('No se pudo cargar la configuración de alarmas.');
         } else {
           setErrorSettings('No se pudo cargar la configuración de alarmas.');
