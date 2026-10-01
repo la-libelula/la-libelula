@@ -1,4 +1,5 @@
-﻿import { getSupabaseBackendClient } from '../../lib/server/supabaseAdmin.js';
+﻿import { verifyGlobalAuth } from '../../lib/server/globalAuth.js';
+import { getSupabaseBackendClient } from '../../lib/server/supabaseAdmin.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET');
@@ -10,6 +11,11 @@ export default async function handler(req, res) {
 
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Mtodo no permitido. Utilizar GET.' });
+  }
+
+  const authResult = await verifyGlobalAuth(req);
+  if (authResult.status !== 200) {
+    return res.status(authResult.status).json({ ok: false, error: authResult.error });
   }
 
   try {
@@ -32,3 +38,4 @@ export default async function handler(req, res) {
     return res.status(500).json({ ok: false, error: 'No se pudieron cargar los ultimos avisos' });
   }
 }
+

@@ -68,12 +68,20 @@ const Alarms = () => {
   };
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!session) return;
+
     const fetchData = async () => {
       setLoading(true);
       try {
+        const fetchOptions = {
+          headers: {
+            'Authorization': 'Bearer ' + session.access_token
+          }
+        };
         const [settingsRes, logsRes] = await Promise.all([
-          fetch('/api/alarms/settings').catch(() => null),
-          fetch('/api/alarms/log').catch(() => null)
+          fetch('/api/alarms/settings', fetchOptions).catch(() => null),
+          fetch('/api/alarms/log', fetchOptions).catch(() => null)
         ]);
 
         if (settingsRes && settingsRes.ok) {
@@ -100,7 +108,7 @@ const Alarms = () => {
     };
 
     fetchData();
-  }, []);
+  }, [session, authLoading]);
 
   const formatDays = (days) => {
     if (days === 0) return 'Mismo día';
@@ -304,6 +312,7 @@ const Alarms = () => {
 };
 
 export default Alarms;
+
 
 
 
