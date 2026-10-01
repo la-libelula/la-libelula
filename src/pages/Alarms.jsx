@@ -139,7 +139,23 @@ const Alarms = () => {
 
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '2rem' }}>
-      <style>{`@media (max-width: 768px) { .alarms-desktop-only { display: none !important; } }`}</style>
+            <style>{`@media (max-width: 768px) {
+          .alarms-desktop-only { display: none !important; }
+          .alarms-mobile-only { display: inline-flex !important; justify-content: center; width: 100%; }
+          .alarms-config-padding { padding: 1rem 0.5rem !important; }
+          .alarms-config-grid { 
+            grid-template-columns: 2fr 35px 2fr 1.2fr !important; 
+            gap: 0.25rem !important; 
+            font-size: 0.85rem !important; 
+          }
+          .alarms-status-cell { justify-content: center !important; }
+          .alarms-status-header { text-align: center !important; }
+          .alarms-status-badge { padding: 4px 0 !important; width: 28px !important; text-align: center; }
+        }
+        @media (min-width: 769px) {
+          .alarms-mobile-only { display: none !important; }
+          .alarms-config-grid { grid-template-columns: 1fr 1fr 1fr 1fr !important; }
+        }`}</style>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <div style={{ backgroundColor: 'var(--color-primary)', padding: '0.75rem', borderRadius: '12px', display: 'flex', color: 'white' }}>
@@ -198,18 +214,18 @@ const Alarms = () => {
               <div style={{ backgroundColor: '#f8fafc', padding: '1rem 1.5rem', borderBottom: '1px solid var(--color-border)' }}>
                 <h2 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--color-text)' }}>{HOUSES[houseId]}</h2>
               </div>
-              <div style={{ padding: '1.5rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '1rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #f1f5f9' }}>
+              <div className="alarms-config-padding" style={{ padding: '1.5rem' }}>
+                <div className="alarms-config-grid" style={{ display: 'grid', gap: '1rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid #f1f5f9' }}>
                   <div>Tarea</div>
-                  <div>Estado</div>
+                  <div className="alarms-status-header">Estado</div>
                   <div>Antelación</div>
                   <div>Hora</div>
                 </div>
                 {getHouseSettings(houseId).map(setting => (
-                  <div key={setting.id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
+                  <div key={setting.id} className="alarms-config-grid" style={{ display: 'grid', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
                     <div style={{ fontWeight: 500 }}>{ALARM_TYPES[setting.alarm_type] || setting.alarm_type}</div>
-                    <div>
-                      <span style={{ 
+                    <div className="alarms-status-cell" style={{ display: 'flex' }}>
+                      <span className="alarms-status-badge" style={{ 
                         display: 'inline-block', 
                         padding: '4px 12px', 
                         borderRadius: '20px', 
@@ -218,7 +234,8 @@ const Alarms = () => {
                         backgroundColor: setting.is_enabled ? '#dcfce7' : '#f1f5f9',
                         color: setting.is_enabled ? '#166534' : '#64748b'
                       }}>
-                        {setting.is_enabled ? 'Activada' : 'Desactivada'}
+                        <span className="alarms-desktop-only">{setting.is_enabled ? 'Activada' : 'Desactivada'}</span>
+                        <span className="alarms-mobile-only">{setting.is_enabled ? 'A' : 'D'}</span>
                       </span>
                     </div>
                     <div>{formatDays(setting.days_before)}</div>
@@ -287,6 +304,14 @@ const Alarms = () => {
 };
 
 export default Alarms;
+
+
+
+
+
+
+
+
 
 
 
