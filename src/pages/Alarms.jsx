@@ -31,37 +31,6 @@ const Alarms = () => {
 
   const { session, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [adminStatus, setAdminStatus] = useState('checking'); // 'checking', 'unauthorized', 'forbidden', 'authorized'
-
-  useEffect(() => {
-    if (authLoading) return;
-
-    if (!session) {
-      setAdminStatus('unauthorized');
-      return;
-    }
-
-    const checkAuth = async () => {
-      try {
-        const res = await fetch('/api/alarms/auth-check', {
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`
-          }
-        });
-        if (res.status === 200) {
-          setAdminStatus('authorized');
-        } else if (res.status === 403) {
-          setAdminStatus('forbidden');
-        } else {
-          setAdminStatus('unauthorized');
-        }
-      } catch {
-        setAdminStatus('unauthorized');
-      }
-    };
-    
-    checkAuth();
-  }, [session, authLoading]);
 
   const handleLogout = async () => {
     await signOut();
@@ -175,32 +144,6 @@ const Alarms = () => {
           </div>
         </div>
 
-        {/* Admin State Zone */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          {authLoading || adminStatus === 'checking' ? (
-            <div className="alarms-desktop-only" style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Verificando sesión...</div>
-          ) : adminStatus === 'unauthorized' ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div className="alarms-desktop-only" style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Para administrar las alarmas, inicia sesión.</div>
-              <button 
-                onClick={() => navigate('/login')}
-                style={{ padding: '0.5rem 1rem', borderRadius: '8px', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer' }}
-              >
-                Iniciar sesión
-              </button>
-            </div>
-          ) : adminStatus === 'forbidden' ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div className="alarms-desktop-only" style={{ fontSize: '0.9rem', color: '#991b1b', backgroundColor: '#fee2e2', padding: '0.4rem 0.8rem', borderRadius: '8px' }}>Usuario sin permisos para administrar alarmas.</div>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div className="alarms-desktop-only" style={{ fontSize: '0.9rem', color: '#166534', backgroundColor: '#dcfce7', padding: '0.4rem 0.8rem', borderRadius: '8px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <CheckCircle2 size={16} /> Administrador autenticado
-              </div>
-            </div>
-          )}
-        </div>
       </div>
 
       {loading ? (
@@ -312,6 +255,9 @@ const Alarms = () => {
 };
 
 export default Alarms;
+
+
+
 
 
 
