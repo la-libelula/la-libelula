@@ -5,6 +5,7 @@ import HelpModal from '../ui/HelpModal.jsx';
 import PinModal from '../ui/PinModal.jsx';
 import { useApp } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const Layout = () => {
     const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -12,6 +13,18 @@ const Layout = () => {
     const [showCopyToast, setShowCopyToast] = useState(false);
     const { visualNotification, setVisualNotification, isSettingsAuthorized, setIsSettingsAuthorized } = useApp();
     const navigate = useNavigate();
+    const { signOut } = useAuth();
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+    const handleLogout = async () => {
+        setIsLoggingOut(true);
+        try {
+            await signOut();
+            navigate('/login');
+        } catch (error) {
+            setIsLoggingOut(false);
+        }
+    };
 
     const [copiedHouse, setCopiedHouse] = useState('');
 
@@ -208,6 +221,24 @@ const Layout = () => {
                     >
                         <HelpCircle size={22} />
                     </button>
+                    <button
+                        onClick={handleLogout}
+                        disabled={isLoggingOut}
+                        style={{
+                            background: 'rgba(239, 68, 68, 0.1)',
+                            border: '1px solid rgba(239, 68, 68, 0.2)',
+                            color: '#ef4444',
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '8px',
+                            borderRadius: '50%',
+                            cursor: isLoggingOut ? 'not-allowed' : 'pointer',
+                            opacity: isLoggingOut ? 0.7 : 1
+                        }}
+                        title="Cerrar sesión"
+                    >
+                        <LogOut size={22} />
+                    </button>
                 </div>
             </header>
 
@@ -355,6 +386,30 @@ const Layout = () => {
                             <HelpCircle size={18} />
                             <span>Ayuda y Soporte</span>
                         </button>
+
+                        <button
+                            onClick={handleLogout}
+                            disabled={isLoggingOut}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.75rem',
+                                padding: '0.85rem 1rem',
+                                borderRadius: 'var(--radius-md)',
+                                background: 'rgba(239, 68, 68, 0.1)',
+                                border: '1px solid rgba(239, 68, 68, 0.2)',
+                                color: '#ef4444',
+                                cursor: isLoggingOut ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.2s',
+                                fontSize: '0.9rem',
+                                fontWeight: 600,
+                                width: '100%',
+                                opacity: isLoggingOut ? 0.7 : 1
+                            }}
+                        >
+                            <LogOut size={18} />
+                            <span>{isLoggingOut ? 'Saliendo...' : 'Cerrar sesión'}</span>
+                        </button>
                         <p style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', textAlign: 'center', opacity: 0.6 }}>© 2026 La Libélula</p>
                     </div>
                 </aside>
@@ -452,3 +507,9 @@ const Layout = () => {
 };
 
 export default Layout;
+
+
+
+
+
+
