@@ -99,8 +99,11 @@ function verifySelectedGroup(selected) {
 // ------------------------------------------------------------------
 // CONTROLLED RETRY WORKFLOW (INJECTABLE)
 // ------------------------------------------------------------------
-async function runControlledRetryWorkflow(supabase, senderImpl, nowStr) {
-  const now = new Date(nowStr || '2026-10-02T12:00:00Z');
+async function runControlledRetryWorkflow(supabase, senderImpl, nowStr = null) {
+  const now = nowStr ? new Date(nowStr) : new Date();
+  if (Number.isNaN(now.getTime())) {
+    throw new Error('Invalid now');
+  }
 
   // FIRST PREFLIGHT
   const allLogs1 = await getGlobalState(supabase);
@@ -238,13 +241,23 @@ async function runLocalMockTest() {
     const sb = createMockSupabase(stateFn);
     senderCalls = 0;
     try {
-      await runControlledRetryWorkflow(sb, async () => { senderCalls++; });
+      await runControlledRetryWorkflow(sb, async () => { senderCalls++; }, "2026-10-02T12:00:00Z");
       assert.fail(`Expected abort: ${expectedErrorStr}`);
     } catch (e) {
       if (e.message.includes('Expected abort')) throw e;
       assert.ok(e.message.includes(expectedErrorStr), `Wrong error: ${e.message} (expected: ${expectedErrorStr})`);
     }
     assert.strictEqual(senderCalls, 0, "Sender must not be called");
+  }
+
+  console.log("Running clock tests (Invalid now)");
+  try {
+    const fakeSb = createMockSupabase(() => getMockValidState());
+    await runControlledRetryWorkflow(fakeSb, async () => {}, "invalid-date");
+    assert.fail(`Expected abort: Invalid now`);
+  } catch (e) {
+    if (e.message.includes('Expected abort')) throw e;
+    assert.ok(e.message.includes("Invalid now"), `Wrong error: ${e.message}`);
   }
 
   console.log("Running A, B, C, D (Gates)");
@@ -328,7 +341,7 @@ async function runLocalMockTest() {
     senderCalls = 0;
     const _log = console.log; console.log = () => {};
     try {
-      await runControlledRetryWorkflow(sbSuccess, async () => { senderCalls++; return { result: senderRes }; });
+      await runControlledRetryWorkflow(sbSuccess, async () => { senderCalls++; return { result: senderRes }; }, "2026-10-02T12:00:00Z");
       if (expectManualReviewStr) assert.fail("Expected MANUAL REVIEW");
     } catch(e) {
       if (!expectManualReviewStr || !e.message.includes(expectManualReviewStr)) throw e;
@@ -359,6 +372,7 @@ async function runLocalMockTest() {
 
   console.log("\nAll Local Sender Retry Validation Tests Passed.");
 }
+
 
 
 
