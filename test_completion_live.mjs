@@ -40,6 +40,12 @@ const GROUP_CONCURRENCY_IDS = [
   '55555555-5555-4555-a555-555555555552'
 ];
 
+const GROUP_ATOMICITY_IDS = [
+  '66666666-6666-4666-a666-666666666661',
+  '66666666-6666-4666-a666-666666666662',
+  '66666666-6666-4666-a666-666666666663'
+];
+
 const ALL_SYNTHETIC_IDS = [
   ...GROUP_SUCCESS_IDS,
   ...GROUP_FAILURE_IDS,
@@ -53,6 +59,7 @@ const TOKEN_FAILURE = 'a0000000-0000-4000-a000-000000000002';
 const TOKEN_OWNER = 'a0000000-0000-4000-a000-000000000003';
 const TOKEN_WRONG = 'a0000000-0000-4000-a000-000000000004';
 const TOKEN_CONCURRENCY = 'a0000000-0000-4000-a000-000000000005';
+const TOKEN_ATOMIC = 'a0000000-0000-4000-a000-000000000006';
 
 let baselineSnapshot = [];
 let artificialRowsInserted = false;
@@ -208,13 +215,33 @@ async function runLiveTest() {
     console.log("[LIVE] Test E Passed (Winner: " + (allSent ? 'Success' : 'Failure') + ").");
 
     // =========================================================================
-    // TEST F: ATOMICITY / PARCIAL (REPORT ONLY)
+    // TEST F: ATOMICITY / PARCIAL
     // =========================================================================
-    console.log("\n[LIVE] Test F: Atomicity / Partial Completion (Analysis)");
-    console.log("-> Analysis: The RPC relies on `v_locked_count = array_length(p_ids)`.");
-    console.log("-> It does NOT enforce that `p_ids` contains ALL rows originally claimed by `p_claim_token`.");
-    console.log("-> Therefore, PostgreSQL ALLOWS partial group completion by design if only a subset is requested.");
-    console.log("-> Test skipped as requested (we do not simulate destructive splits).");
+    console.log("\n[LIVE] Test F: Atomicity / Partial Completion...");
+    await supabase.rpc('claim_alarm_group', { p_ids: GROUP_ATOMICITY_IDS, p_claim_token: TOKEN_ATOMIC });
+    
+    const { data: atomSnap } = await supabase.from('alarm_log').select('*').in('id', GROUP_ATOMICITY_IDS);
+    
+    const subsetIds = [GROUP_ATOMICITY_IDS[0], GROUP_ATOMICITY_IDS[1]];
+    const { error: atomErr } = await supabase.rpc('complete_alarm_group_success', {
+      p_ids: subsetIds,
+      p_claim_token: TOKEN_ATOMIC
+    });
+    
+    assert.ok(atomErr && atomErr.message.includes('incomplete_claim_group'), 'Expected incomplete_claim_group error for subset completion');
+    
+    const { data: atomPostSnap } = await supabase.from('alarm_log').select('*').in('id', GROUP_ATOMICITY_IDS);
+    assert.deepStrictEqual(atomPostSnap, atomSnap, 'Snapshot must be identical after rejected subset completion');
+    
+    await supabase.rpc('complete_alarm_group_success', {
+      p_ids: GROUP_ATOMICITY_IDS,
+      p_claim_token: TOKEN_ATOMIC
+    });
+    
+    const { data: atomFinalSnap } = await supabase.from('alarm_log').select('*').in('id', GROUP_ATOMICITY_IDS);
+    const atomSent = atomFinalSnap.every(r => r.status === 'sent');
+    assert.ok(atomSent, "Entire group must be completed successfully");
+    console.log("[LIVE] Test F Passed.");
 
     console.log("\n>>> LIVE CLAIM COMPLETION TESTS PASSED <<<");
 
