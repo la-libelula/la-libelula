@@ -19,15 +19,14 @@ function mock_complete_alarm_group_success(p_ids, p_claim_token) {
   if (uniqueIds.size !== p_ids.length) throw new Error("duplicate_ids");
 
   const lockedRows = fakeDB.filter(r => p_ids.includes(r.id) || (r.status === 'processing' && r.claim_token === p_claim_token));
-  
-  const tokenRows = lockedRows.filter(r => r.status === 'processing' && r.claim_token === p_claim_token);
-  if (tokenRows.length > p_ids.length) throw new Error("incomplete_claim_group");
 
-  const requestedRows = lockedRows.filter(r => p_ids.includes(r.id));
-  if (requestedRows.length !== p_ids.length) throw new Error("missing_ids");
+  const requestedFoundCount = lockedRows.filter(r => p_ids.includes(r.id)).length;
+  const eligibleCount = lockedRows.filter(r => r.status === 'processing' && r.claim_token === p_claim_token && p_ids.includes(r.id)).length;
+  const tokenLockedCount = lockedRows.filter(r => r.status === 'processing' && r.claim_token === p_claim_token).length;
 
-  const eligibleRows = lockedRows.filter(r => r.status === 'processing' && r.claim_token === p_claim_token && p_ids.includes(r.id));
-  if (eligibleRows.length !== p_ids.length) throw new Error("invalid_status_or_token");
+  if (requestedFoundCount !== p_ids.length) throw new Error("missing_ids");
+  if (eligibleCount !== p_ids.length) throw new Error("invalid_status_or_token");
+  if (tokenLockedCount !== p_ids.length) throw new Error("incomplete_claim_group");
 
   for (const row of lockedRows) {
     if (p_ids.includes(row.id)) {
@@ -53,14 +52,13 @@ function mock_complete_alarm_group_failure(p_ids, p_claim_token, p_error_message
 
   const lockedRows = fakeDB.filter(r => p_ids.includes(r.id) || (r.status === 'processing' && r.claim_token === p_claim_token));
 
-  const tokenRows = lockedRows.filter(r => r.status === 'processing' && r.claim_token === p_claim_token);
-  if (tokenRows.length > p_ids.length) throw new Error("incomplete_claim_group");
+  const requestedFoundCount = lockedRows.filter(r => p_ids.includes(r.id)).length;
+  const eligibleCount = lockedRows.filter(r => r.status === 'processing' && r.claim_token === p_claim_token && p_ids.includes(r.id)).length;
+  const tokenLockedCount = lockedRows.filter(r => r.status === 'processing' && r.claim_token === p_claim_token).length;
 
-  const requestedRows = lockedRows.filter(r => p_ids.includes(r.id));
-  if (requestedRows.length !== p_ids.length) throw new Error("missing_ids");
-
-  const eligibleRows = lockedRows.filter(r => r.status === 'processing' && r.claim_token === p_claim_token && p_ids.includes(r.id));
-  if (eligibleRows.length !== p_ids.length) throw new Error("invalid_status_or_token");
+  if (requestedFoundCount !== p_ids.length) throw new Error("missing_ids");
+  if (eligibleCount !== p_ids.length) throw new Error("invalid_status_or_token");
+  if (tokenLockedCount !== p_ids.length) throw new Error("incomplete_claim_group");
 
   for (const row of lockedRows) {
     if (p_ids.includes(row.id)) {

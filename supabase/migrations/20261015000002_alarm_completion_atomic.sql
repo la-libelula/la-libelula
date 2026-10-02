@@ -54,7 +54,7 @@ SECURITY INVOKER
 AS $func$
 DECLARE
     v_expected_count integer;
-    v_locked_count integer;
+    v_requested_found_count integer;
     v_eligible_count integer;
     v_updated_count integer;
     v_token_locked_count integer;
@@ -68,8 +68,6 @@ BEGIN
         RAISE EXCEPTION 'duplicate_ids';
     END IF;
 
-    -- BLOQUEO: Bloquear todas las filas requeridas Y cualquier fila que posea el token.
-    -- Esto garantiza que no se escapen filas parciales.
     WITH locked_rows AS (
         SELECT id, status, claim_token
         FROM public.alarm_log
@@ -78,20 +76,15 @@ BEGIN
         FOR UPDATE
     )
     SELECT 
-        count(*), 
+        count(*) FILTER (WHERE id = ANY(p_ids)),
         count(*) FILTER (WHERE status = 'processing' AND claim_token = p_claim_token AND id = ANY(p_ids)),
         count(*) FILTER (WHERE status = 'processing' AND claim_token = p_claim_token)
-    INTO v_locked_count, v_eligible_count, v_token_locked_count
+    INTO v_requested_found_count, v_eligible_count, v_token_locked_count
     FROM locked_rows;
 
-    -- Si el token ampara a mas filas de las solicitadas, el claim est incompleto.
-    IF v_token_locked_count > v_expected_count THEN 
-        RAISE EXCEPTION 'incomplete_claim_group'; 
-    END IF;
-
-    -- Validaciones estandar de IDs faltantes o status/token incorrectos
-    IF v_locked_count <> v_expected_count THEN RAISE EXCEPTION 'missing_ids'; END IF;
+    IF v_requested_found_count <> v_expected_count THEN RAISE EXCEPTION 'missing_ids'; END IF;
     IF v_eligible_count <> v_expected_count THEN RAISE EXCEPTION 'invalid_status_or_token'; END IF;
+    IF v_token_locked_count <> v_expected_count THEN RAISE EXCEPTION 'incomplete_claim_group'; END IF;
 
     UPDATE public.alarm_log
     SET status = 'sent',
@@ -124,7 +117,7 @@ SECURITY INVOKER
 AS $func$
 DECLARE
     v_expected_count integer;
-    v_locked_count integer;
+    v_requested_found_count integer;
     v_eligible_count integer;
     v_updated_count integer;
     v_token_locked_count integer;
@@ -145,7 +138,6 @@ BEGIN
         v_safe_error_message := LEFT(p_error_message, 450);
     END IF;
 
-    -- BLOQUEO: Bloquear todas las filas requeridas Y cualquier fila que posea el token.
     WITH locked_rows AS (
         SELECT id, status, claim_token
         FROM public.alarm_log
@@ -154,19 +146,15 @@ BEGIN
         FOR UPDATE
     )
     SELECT 
-        count(*), 
+        count(*) FILTER (WHERE id = ANY(p_ids)),
         count(*) FILTER (WHERE status = 'processing' AND claim_token = p_claim_token AND id = ANY(p_ids)),
         count(*) FILTER (WHERE status = 'processing' AND claim_token = p_claim_token)
-    INTO v_locked_count, v_eligible_count, v_token_locked_count
+    INTO v_requested_found_count, v_eligible_count, v_token_locked_count
     FROM locked_rows;
 
-    -- Si el token ampara a mas filas de las solicitadas, el claim est incompleto.
-    IF v_token_locked_count > v_expected_count THEN 
-        RAISE EXCEPTION 'incomplete_claim_group'; 
-    END IF;
-
-    IF v_locked_count <> v_expected_count THEN RAISE EXCEPTION 'missing_ids'; END IF;
+    IF v_requested_found_count <> v_expected_count THEN RAISE EXCEPTION 'missing_ids'; END IF;
     IF v_eligible_count <> v_expected_count THEN RAISE EXCEPTION 'invalid_status_or_token'; END IF;
+    IF v_token_locked_count <> v_expected_count THEN RAISE EXCEPTION 'incomplete_claim_group'; END IF;
 
     UPDATE public.alarm_log
     SET status = 'failed',
