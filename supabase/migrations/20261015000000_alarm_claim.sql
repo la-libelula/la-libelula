@@ -5,15 +5,49 @@
 
 BEGIN;
 
--- 1. PRECHECK FAIL-CLOSED (Asegurar que el constraint original es el esperado)
+-- 1. PRECHECKS FAIL-CLOSED
 DO $$
+DECLARE
+    v_constraint_def text;
 BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint 
-        WHERE conname = 'chk_log_status' AND conrelid = 'public.alarm_log'::regclass
-    ) THEN
+    -- 1.1 Comprobar existencia y definición exacta de chk_log_status
+    SELECT pg_get_constraintdef(oid) INTO v_constraint_def
+    FROM pg_constraint 
+    WHERE conname = 'chk_log_status' AND conrelid = 'public.alarm_log'::regclass;
+
+    IF v_constraint_def IS NULL THEN
         RAISE EXCEPTION 'Constraint chk_log_status no existe. Abortando migración para evitar roturas.';
     END IF;
+
+    -- Validar que la definición actual sea la equivalente a la original comprobada (sin processing)
+    -- Se comprueba que incluya los estados originales y NO processing, para soportar variaciones menores de espaciado o casting (::text).
+    IF v_constraint_def NOT LIKE '%pending%' OR 
+       v_constraint_def NOT LIKE '%sent%' OR 
+       v_constraint_def NOT LIKE '%failed%' OR 
+       v_constraint_def NOT LIKE '%obsolete%' OR
+       v_constraint_def LIKE '%processing%' THEN
+        RAISE EXCEPTION 'Constraint chk_log_status tiene una definición inesperada: %. Abortando.', v_constraint_def;
+    END IF;
+
+    -- 1.2 Comprobar que NO existen columnas claim_token o claimed_at
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+          AND table_name = 'alarm_log' 
+          AND column_name IN ('claim_token', 'claimed_at')
+    ) THEN
+        RAISE EXCEPTION 'Columnas claim_token o claimed_at ya existen. Abortando posible ejecución repetida o conflictiva.';
+    END IF;
+
+    -- 1.3 Comprobar que NO existe la función claim_alarm_group
+    IF EXISTS (
+        SELECT 1 FROM pg_proc p
+        JOIN pg_namespace n ON p.pronamespace = n.oid
+        WHERE n.nspname = 'public' AND p.proname = 'claim_alarm_group'
+    ) THEN
+        RAISE EXCEPTION 'Función claim_alarm_group ya existe. Abortando posible ejecución repetida.';
+    END IF;
+
 END $$;
 
 -- 2. AÑADIR COLUMNAS
@@ -42,7 +76,7 @@ CHECK (
 );
 
 -- 5. FUNCIÓN RPC DE CLAIM
-CREATE OR REPLACE FUNCTION public.claim_alarm_group(
+CREATE FUNCTION public.claim_alarm_group(
     p_ids UUID[],
     p_claim_token UUID
 )
