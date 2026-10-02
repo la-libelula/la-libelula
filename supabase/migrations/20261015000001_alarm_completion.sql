@@ -101,7 +101,7 @@ BEGIN
         RAISE EXCEPTION 'duplicate_ids';
     END IF;
     
-    IF p_error_message IS NULL OR p_error_message = '' THEN
+    IF p_error_message IS NULL OR btrim(p_error_message) = '' THEN
         v_safe_error_message := 'Unknown error during completion';
     ELSE
         v_safe_error_message := LEFT(p_error_message, 450);
