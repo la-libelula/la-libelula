@@ -37,6 +37,32 @@ const Alarms = () => {
   const [reconcileLoading, setReconcileLoading] = useState(false);
   const [reconcileError, setReconcileError] = useState(null);
 
+  const [sendPreviewLoading, setSendPreviewLoading] = useState(false);
+  const [sendPreviewError, setSendPreviewError] = useState(null);
+  const [sendPreviewData, setSendPreviewData] = useState(null);
+
+  const handleFetchSendPreview = async () => {
+    if (!session?.access_token) return;
+    
+    setSendPreviewLoading(true);
+    setSendPreviewError(null);
+    try {
+      const response = await fetch('/api/alarms/send-preview', {
+        headers: { 'Authorization': 'Bearer ' + session.access_token }
+      });
+      const data = await response.json();
+      if (!response.ok || data.ok !== true) {
+        throw new Error(data.error || 'No se pudo cargar la simulación de envío');
+      }
+      setSendPreviewData(data);
+    } catch (err) {
+      setSendPreviewError(err.message);
+    } finally {
+      setSendPreviewLoading(false);
+    }
+  };
+
+
   
   const [applyLoading, setApplyLoading] = useState(false);
   const [applySuccessMessage, setApplySuccessMessage] = useState('');
@@ -609,7 +635,89 @@ const handleFetchPreview = async () => {
           </div>
 
           
+          
+          {/* Sección Simulación de envío */}
+          <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '2rem', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', marginBottom: '2rem', border: '2px dashed #93c5fd' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#1e3a8a' }}>Simulación de envío (Dry-run)</h2>
+              <button 
+                onClick={handleFetchSendPreview}
+                disabled={sendPreviewLoading}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: '#2563eb',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  cursor: sendPreviewLoading ? 'not-allowed' : 'pointer',
+                  opacity: sendPreviewLoading ? 0.7 : 1
+                }}
+              >
+                {sendPreviewLoading ? 'Calculando...' : 'Ver qué se enviaría ahora'}
+              </button>
+            </div>
+            
+            <p style={{ color: '#475569', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+              <strong>SIMULACIÓN — No se ha enviado ningún Telegram.</strong><br/>
+              Comprueba qué alarmas están vencidas y qué mensajes se generarían exactamente si el emisor se ejecutara en este instante.
+            </p>
+
+            {sendPreviewError && (
+              <div style={{ padding: '1rem', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '8px', marginBottom: '1rem' }}>
+                Error: {sendPreviewError}
+              </div>
+            )}
+
+            {sendPreviewData && sendPreviewData.summary && (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+                  <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '2rem', fontWeight: '800', color: '#334155' }}>{sendPreviewData.summary.active_logs}</div>
+                    <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Logs analizados</div>
+                  </div>
+                  <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '2rem', fontWeight: '800', color: '#3b82f6' }}>{sendPreviewData.summary.future}</div>
+                    <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Futuros</div>
+                  </div>
+                  <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '2rem', fontWeight: '800', color: '#16a34a' }}>{sendPreviewData.summary.due}</div>
+                    <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>A Enviar (Due)</div>
+                  </div>
+                  <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '2rem', fontWeight: '800', color: '#ea580c' }}>{sendPreviewData.summary.retry_wait}</div>
+                    <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>En espera (Retry)</div>
+                  </div>
+                  <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '2rem', fontWeight: '800', color: '#b91c1c' }}>{sendPreviewData.summary.obsolete + sendPreviewData.summary.stale + sendPreviewData.summary.invalid + sendPreviewData.summary.retry_exhausted}</div>
+                    <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Descartados</div>
+                  </div>
+                </div>
+                
+                {sendPreviewData.groups_to_send && sendPreviewData.groups_to_send.length > 0 ? (
+                  <div>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '1rem', color: '#1e293b' }}>
+                      Mensajes Telegram Resultantes ({sendPreviewData.summary.groups_to_send})
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      {sendPreviewData.groups_to_send.map((g, idx) => (
+                        <div key={idx} style={{ backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '8px', padding: '1.5rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: '0.9rem', color: '#0369a1' }}>
+                          {g.message}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: '#f8fafc', borderRadius: '8px', color: '#64748b', fontWeight: '500' }}>
+                    No hay ningún aviso vencido para enviar en este momento.
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
           <div style={{ marginBottom: '2rem' }}>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', marginTop: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
               <h2 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--color-text)' }}>Simulación de reconciliación</h2>
               
