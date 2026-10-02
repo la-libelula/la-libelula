@@ -1,29 +1,32 @@
 ﻿-- =========================================================================
--- FASE C6.3B.1: HARDENING DEL SQL DE CLAIM ATÓMICO (SQL LOCAL)
+-- FASE C6.3C: MIGRACIÓN DEFINITIVA DEL CLAIM ATÓMICO (SQL LOCAL)
 -- NO EJECUTAR EN PRODUCCIÓN TODAVÍA.
 -- =========================================================================
 
--- 1. IDENTIFICACIÓN DEL CONSTRAINT ACTUAL
-/*
-  SELECT conname
-  FROM pg_constraint
-  WHERE conrelid = 'public.alarm_log'::regclass 
-    AND contype = 'c' 
-    AND pg_get_constraintdef(oid) LIKE '%status%';
-*/
+BEGIN;
 
--- ALTER TABLE public.alarm_log DROP CONSTRAINT IF EXISTS alarm_log_status_check;
--- ALTER TABLE public.alarm_log ADD CONSTRAINT alarm_log_status_check 
---   CHECK (status IN ('pending', 'failed', 'sent', 'obsolete', 'processing'));
+-- 1. PRECHECK FAIL-CLOSED (Asegurar que el constraint original es el esperado)
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint 
+        WHERE conname = 'chk_log_status' AND conrelid = 'public.alarm_log'::regclass
+    ) THEN
+        RAISE EXCEPTION 'Constraint chk_log_status no existe. Abortando migración para evitar roturas.';
+    END IF;
+END $$;
 
--- 2. AÑADIR COLUMNAS DE PROPIEDAD
--- ALTER TABLE public.alarm_log ADD COLUMN claim_token UUID NULL;
--- ALTER TABLE public.alarm_log ADD COLUMN claimed_at TIMESTAMPTZ NULL;
+-- 2. AÑADIR COLUMNAS
+ALTER TABLE public.alarm_log ADD COLUMN claim_token UUID NULL;
+ALTER TABLE public.alarm_log ADD COLUMN claimed_at TIMESTAMPTZ NULL;
 
--- 2.5 INVARIANTE RECOMENDADO FUTURO (NO ACTIVAR TODAVÍA)
--- Nota: NO activar hasta inspeccionar datos reales existentes para evitar roturas.
-/*
-ALTER TABLE public.alarm_log ADD CONSTRAINT alarm_log_processing_coherence_check
+-- 3. REEMPLAZAR CONSTRAINT DE ESTADO
+ALTER TABLE public.alarm_log DROP CONSTRAINT chk_log_status;
+ALTER TABLE public.alarm_log ADD CONSTRAINT chk_log_status 
+  CHECK (status IN ('pending', 'sent', 'failed', 'obsolete', 'processing'));
+
+-- 4. AÑADIR COHERENCIA DE PROCESSING
+ALTER TABLE public.alarm_log ADD CONSTRAINT chk_log_processing_coherence
 CHECK (
   (
     status = 'processing'
@@ -37,10 +40,8 @@ CHECK (
     AND claimed_at IS NULL
   )
 );
-*/
 
--- 3. FUNCIÓN RPC PARA CLAIM ATÓMICO (GRUPO COMPLETO)
-/*
+-- 5. FUNCIÓN RPC DE CLAIM
 CREATE OR REPLACE FUNCTION public.claim_alarm_group(
     p_ids UUID[],
     p_claim_token UUID
@@ -48,11 +49,12 @@ CREATE OR REPLACE FUNCTION public.claim_alarm_group(
 RETURNS TABLE (claimed_count integer)
 LANGUAGE plpgsql
 SECURITY INVOKER
-AS $$
+AS $func$
 DECLARE
     v_expected_count integer;
     v_locked_count integer;
     v_eligible_count integer;
+    v_updated_count integer;
 BEGIN
     -- Validar Token
     IF p_claim_token IS NULL THEN
@@ -65,12 +67,12 @@ BEGIN
         RAISE EXCEPTION 'empty_array';
     END IF;
 
-    -- Validar IDs duplicados (compara longitud vs elementos únicos)
+    -- Validar IDs duplicados
     IF (SELECT count(DISTINCT unnest) FROM unnest(p_ids)) <> v_expected_count THEN
         RAISE EXCEPTION 'duplicate_ids';
     END IF;
 
-    -- Bloquear filas específicas y comprobar validez
+    -- Bloquear y comprobar
     WITH locked_rows AS (
         SELECT id, status
         FROM public.alarm_log
@@ -83,35 +85,93 @@ BEGIN
     INTO v_locked_count, v_eligible_count
     FROM locked_rows;
 
-    -- Comprobar si todas las filas existían
     IF v_locked_count <> v_expected_count THEN
         RAISE EXCEPTION 'partial_availability';
     END IF;
 
-    -- Comprobar si todas eran elegibles
     IF v_eligible_count <> v_expected_count THEN
         RAISE EXCEPTION 'invalid_status_in_group';
     END IF;
 
-    -- Actualizar TODAS atómicamente
+    -- Actualizar atómicamente
     UPDATE public.alarm_log
     SET status = 'processing',
         claim_token = p_claim_token,
         claimed_at = now()
     WHERE id = ANY(p_ids);
 
-    -- Devolver solo el count
+    -- Comprobación ultra-defensiva del ROW_COUNT
+    GET DIAGNOSTICS v_updated_count = ROW_COUNT;
+    IF v_updated_count <> v_expected_count THEN
+        RAISE EXCEPTION 'update_row_count_mismatch';
+    END IF;
+
     RETURN QUERY SELECT v_expected_count;
 END;
-$$;
-*/
+$func$;
 
--- 4. SEGURIDAD DE LA FUNCIÓN
-/*
+-- 6. PERMISOS
 REVOKE EXECUTE ON FUNCTION public.claim_alarm_group(UUID[], UUID) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.claim_alarm_group(UUID[], UUID) FROM anon;
 REVOKE EXECUTE ON FUNCTION public.claim_alarm_group(UUID[], UUID) FROM authenticated;
-
--- Solo el rol de servicio (backend) puede ejecutarla
 GRANT EXECUTE ON FUNCTION public.claim_alarm_group(UUID[], UUID) TO service_role;
+
+COMMIT;
+
+
+-- =========================================================================
+-- POSTCHECKS READ-ONLY (Ejecutar manualmente DESPUÉS de la migración)
+-- =========================================================================
+/*
+-- A. Columnas
+SELECT column_name, data_type, is_nullable 
+FROM information_schema.columns 
+WHERE table_name = 'alarm_log';
+
+-- B. Constraints
+SELECT conname, pg_get_constraintdef(oid) 
+FROM pg_constraint 
+WHERE conrelid = 'public.alarm_log'::regclass;
+
+-- C. Función
+SELECT proname, proargnames, prosrc 
+FROM pg_proc 
+WHERE proname = 'claim_alarm_group';
+
+-- D. Privilegios
+SELECT grantee, privilege_type 
+FROM information_schema.routine_privileges 
+WHERE routine_name = 'claim_alarm_group';
+*/
+
+
+-- =========================================================================
+-- ROLLBACK CONCEPTUAL
+-- (Ejecutar solo si la migración falla parcialmente o se desea revertir)
+-- =========================================================================
+/*
+BEGIN;
+
+-- 1. Precheck para abortar si hay processing varados
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM public.alarm_log WHERE status = 'processing') THEN
+        RAISE EXCEPTION 'Cannot rollback: rows exist in processing state';
+    END IF;
+END $$;
+
+-- 2. Eliminar Función
+DROP FUNCTION IF EXISTS public.claim_alarm_group(UUID[], UUID);
+
+-- 3. Restaurar Constraints
+ALTER TABLE public.alarm_log DROP CONSTRAINT IF EXISTS chk_log_processing_coherence;
+ALTER TABLE public.alarm_log DROP CONSTRAINT IF EXISTS chk_log_status;
+ALTER TABLE public.alarm_log ADD CONSTRAINT chk_log_status 
+  CHECK (status IN ('pending', 'sent', 'failed', 'obsolete'));
+
+-- 4. Eliminar Columnas
+ALTER TABLE public.alarm_log DROP COLUMN IF EXISTS claim_token;
+ALTER TABLE public.alarm_log DROP COLUMN IF EXISTS claimed_at;
+
+COMMIT;
 */
