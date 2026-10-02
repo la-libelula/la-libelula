@@ -20,6 +20,25 @@
 -- ALTER TABLE public.alarm_log ADD COLUMN claim_token UUID NULL;
 -- ALTER TABLE public.alarm_log ADD COLUMN claimed_at TIMESTAMPTZ NULL;
 
+-- 2.5 INVARIANTE RECOMENDADO FUTURO (NO ACTIVAR TODAVÍA)
+-- Nota: NO activar hasta inspeccionar datos reales existentes para evitar roturas.
+/*
+ALTER TABLE public.alarm_log ADD CONSTRAINT alarm_log_processing_coherence_check
+CHECK (
+  (
+    status = 'processing'
+    AND claim_token IS NOT NULL
+    AND claimed_at IS NOT NULL
+  )
+  OR
+  (
+    status <> 'processing'
+    AND claim_token IS NULL
+    AND claimed_at IS NULL
+  )
+);
+*/
+
 -- 3. FUNCIÓN RPC PARA CLAIM ATÓMICO (GRUPO COMPLETO)
 /*
 CREATE OR REPLACE FUNCTION public.claim_alarm_group(
