@@ -37,8 +37,40 @@ const Alarms = () => {
   const [reconcileLoading, setReconcileLoading] = useState(false);
   const [reconcileError, setReconcileError] = useState(null);
 
+  
   const [applyLoading, setApplyLoading] = useState(false);
   const [applySuccessMessage, setApplySuccessMessage] = useState('');
+
+  const [telegramLoading, setTelegramLoading] = useState(false);
+  const [telegramSuccess, setTelegramSuccess] = useState('');
+  const [telegramError, setTelegramError] = useState('');
+
+  const handleTestTelegram = async () => {
+    if (!session?.access_token || telegramLoading) return;
+    
+    setTelegramLoading(true);
+    setTelegramSuccess('');
+    setTelegramError('');
+    
+    try {
+      const response = await fetch('/api/alarms/telegram-test', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + session.access_token }
+      });
+      
+      const data = await response.json();
+      if (!response.ok || data.ok !== true) {
+        throw new Error(data.error || 'No se pudo enviar el mensaje de prueba');
+      }
+      
+      setTelegramSuccess('Mensaje de prueba enviado correctamente.');
+    } catch (err) {
+      setTelegramError(err.message);
+    } finally {
+      setTelegramLoading(false);
+    }
+  };
+
 
   const handleApplyReconcile = async () => {
     if (!session?.access_token) return;
@@ -453,6 +485,48 @@ const handleFetchPreview = async () => {
           ))}
 
           
+          
+          {/* Sección Telegram */}
+          <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '2rem', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', marginBottom: '2rem' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1e293b', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Bell size={20} color="#0d9488" />
+              Telegram
+            </h2>
+            
+            <p style={{ color: '#475569', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+              Comprueba que La Libélula puede enviar avisos al grupo privado de Telegram.
+            </p>
+
+            {telegramSuccess && (
+              <div style={{ padding: '1rem', backgroundColor: '#dcfce7', color: '#166534', borderRadius: '8px', marginBottom: '1rem', fontWeight: '500' }}>
+                {telegramSuccess}
+              </div>
+            )}
+            
+            {telegramError && (
+              <div style={{ padding: '1rem', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '8px', marginBottom: '1rem', fontWeight: '500' }}>
+                Error: {telegramError}
+              </div>
+            )}
+
+            <button 
+              onClick={handleTestTelegram}
+              disabled={telegramLoading}
+              style={{
+                padding: '0.75rem 1.5rem',
+                backgroundColor: 'var(--color-primary, #0d9488)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: '600',
+                cursor: telegramLoading ? 'not-allowed' : 'pointer',
+                opacity: telegramLoading ? 0.7 : 1
+              }}
+            >
+              {telegramLoading ? 'Enviando...' : 'Enviar Telegram de prueba'}
+            </button>
+          </div>
+
           <div style={{ marginBottom: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', marginTop: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
               <h2 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--color-text)' }}>Próximos avisos</h2>
