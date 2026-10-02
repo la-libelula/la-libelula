@@ -11,10 +11,14 @@ const EXPECTED_HOUSE_ID = 'valles';
 const EXPECTED_ALARM_TYPE = 'heating';
 const EXPECTED_SCHEDULED_EPOCH = 1790917200000;
 
+export function checkGates(gate1, gate2) {
+  return gate1 === 'YES_ONE_INCIDENT' && gate2 === EXPECTED_LOG_ID;
+}
+
 const GATE1 = process.env.LIVE_RECOVERY_EXECUTION;
 const GATE2 = process.env.LIVE_RECOVERY_EXPECTED_LOG_ID;
 
-if (GATE1 !== 'YES_ONE_GROUP' && GATE1 !== 'YES_ONE_INCIDENT' || GATE2 !== EXPECTED_LOG_ID) {
+if (!checkGates(GATE1, GATE2)) {
   console.log("\nRECOVERY DISABLED\nNo Supabase connection attempted.\n");
   runLocalMockTest().catch(err => { console.error(err); process.exit(1); });
 } else {
@@ -61,10 +65,19 @@ async function runControlledRecoveryWorkflow(supabase) {
   
   const target2 = globalLogs2.find(r => r.id === EXPECTED_LOG_ID);
   if (!target2) throw new Error("ABORT: Target log lost in second read");
+  
   if (target2.status !== 'processing') throw new Error("ABORT: status not processing in second read");
+  if (target2.booking_id !== EXPECTED_BOOKING_ID) throw new Error("ABORT: booking_id changed");
+  if (target2.house_id !== EXPECTED_HOUSE_ID) throw new Error("ABORT: house_id changed");
+  if (target2.alarm_type !== EXPECTED_ALARM_TYPE) throw new Error("ABORT: alarm_type changed");
+  
+  const epoch2 = new Date(target2.scheduled_for).getTime();
+  if (epoch2 !== EXPECTED_SCHEDULED_EPOCH) throw new Error("ABORT: scheduled_for changed");
+  
   if (target2.retry_count !== 0) throw new Error("ABORT: retry_count changed");
   if (target2.last_attempt_at !== null) throw new Error("ABORT: last_attempt_at changed");
   if (target2.sent_at !== null) throw new Error("ABORT: sent_at changed");
+  if (target2.error_message !== null) throw new Error("ABORT: error_message changed");
   if (target2.claim_token !== expectedToken) throw new Error("ABORT: claim_token mutated");
   if (target2.claimed_at !== expectedClaimedAt) throw new Error("ABORT: claimed_at mutated");
 
@@ -100,8 +113,8 @@ async function runControlledRecoveryWorkflow(supabase) {
 
   const processingLogs3 = globalLogs3.filter(r => r.status === 'processing');
   if (processingLogs3.length !== 0) {
-    console.log("WARNING: processing global != 0 after recovery (manual review required for other rows)");
-    // not throwing strictly to finish report, but logged
+    console.log("MANUAL REVIEW REQUIRED / POSTCHECK FAILED: processing global != 0 after recovery");
+    throw new Error("POSTCHECK FAILED: processing global != 0");
   }
   
   const target3 = globalLogs3.find(r => r.id === EXPECTED_LOG_ID);
@@ -140,6 +153,11 @@ async function runControlledRecovery() {
 // ------------------------------------------------------------------
 async function runLocalMockTest() {
   let rpcCalls = 0;
+
+  // Gate tests
+  assert.strictEqual(checkGates('YES_ONE_GROUP', EXPECTED_LOG_ID), false, "YES_ONE_GROUP must not be accepted");
+  assert.strictEqual(checkGates('YES_ONE_INCIDENT', EXPECTED_LOG_ID), true);
+  assert.strictEqual(checkGates('YES_ONE_INCIDENT', 'wrong-id'), false);
   
   function getMockValidState() {
     return {
@@ -201,7 +219,7 @@ async function runLocalMockTest() {
     }
   }
 
-  console.log("Running A, B (Implicitly tested by gate check).");
+  console.log("Running A, B (Gates)");
 
   console.log("Running C (Target nonexistent)");
   await testFail({}, "processing global = 0", { recovered_count: 1 }, () => []);
@@ -255,6 +273,42 @@ async function runLocalMockTest() {
     return copy;
   });
 
+  // NEW DYNAMIC SECOND READ TESTS FOR C6.5C.5A.1
+  console.log("Running Second Read changes: booking_id");
+  await testFail({}, "booking_id changed", { recovered_count: 1 }, (reads, baseSt) => {
+    let copy = JSON.parse(JSON.stringify(baseSt));
+    if (reads > 1) copy[0].booking_id = 'different';
+    return copy;
+  });
+
+  console.log("Running Second Read changes: house_id");
+  await testFail({}, "house_id changed", { recovered_count: 1 }, (reads, baseSt) => {
+    let copy = JSON.parse(JSON.stringify(baseSt));
+    if (reads > 1) copy[0].house_id = 'different';
+    return copy;
+  });
+
+  console.log("Running Second Read changes: alarm_type");
+  await testFail({}, "alarm_type changed", { recovered_count: 1 }, (reads, baseSt) => {
+    let copy = JSON.parse(JSON.stringify(baseSt));
+    if (reads > 1) copy[0].alarm_type = 'different';
+    return copy;
+  });
+
+  console.log("Running Second Read changes: scheduled_for");
+  await testFail({}, "scheduled_for changed", { recovered_count: 1 }, (reads, baseSt) => {
+    let copy = JSON.parse(JSON.stringify(baseSt));
+    if (reads > 1) copy[0].scheduled_for = new Date(EXPECTED_SCHEDULED_EPOCH + 5000).toISOString();
+    return copy;
+  });
+
+  console.log("Running Second Read changes: error_message");
+  await testFail({}, "error_message changed", { recovered_count: 1 }, (reads, baseSt) => {
+    let copy = JSON.parse(JSON.stringify(baseSt));
+    if (reads > 1) copy[0].error_message = 'some-error';
+    return copy;
+  });
+
   console.log("Running Q (RPC recovered_count 0 -> manual review)");
   await testFail(null, "recovery_failed", { recovered_count: 0 });
 
@@ -285,7 +339,7 @@ async function runLocalMockTest() {
   console.log = _log;
   assert.strictEqual(rpcCalls, 1, "RPC called exactly once");
 
-  console.log("Running W (Postcheck incorrect)");
+  console.log("Running W (Postcheck target incorrect)");
   rpcCalls = 0;
   tReads = 0;
   tSt = [getMockValidState()];
@@ -310,6 +364,36 @@ async function runLocalMockTest() {
   console.log = _log;
   assert.strictEqual(rpcCalls, 1);
 
+  console.log("Running X (Postcheck global processing !== 0)");
+  rpcCalls = 0;
+  tReads = 0;
+  tSt = [getMockValidState()];
+  let sbFailGlobal = createMockSupabase(() => {
+    tReads++;
+    let copy = JSON.parse(JSON.stringify(tSt));
+    if (tReads === 3) {
+      // Postcheck: target is fine
+      copy[0].status = 'pending';
+      copy[0].claim_token = null;
+      copy[0].claimed_at = null;
+      // But another row became processing
+      copy.push({
+        id: 'other',
+        status: 'processing'
+      });
+    }
+    return copy;
+  }, () => ({ recovered_count: 1 }));
+  
+  console.log = () => {};
+  try {
+    await runControlledRecoveryWorkflow(sbFailGlobal);
+    assert.fail("Expected POSTCHECK FAILED: processing global != 0");
+  } catch(e) {
+    if (!e.message.includes('processing global != 0')) throw e;
+  }
+  console.log = _log;
+  assert.strictEqual(rpcCalls, 1);
+
   console.log("\nAll Local Recovery Validation Tests Passed.");
 }
-
