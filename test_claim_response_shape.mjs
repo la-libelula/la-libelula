@@ -7,7 +7,7 @@ async function simulateSenderClaim(mockRpcData) {
   const claimData = mockRpcData;
   const claimErr = null; // We are testing data shape here
   
-  if (claimErr || !claimData || claimData[0]?.updated_count !== groupIds.length) {
+  if (claimErr || !claimData || claimData[0]?.claimed_count !== groupIds.length) {
     return 'claim_failed';
   }
   return 'claim_success';
@@ -34,3 +34,4 @@ async function runDiagnostics() {
 }
 
 runDiagnostics().catch(console.error);
+

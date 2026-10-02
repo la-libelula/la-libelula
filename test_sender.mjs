@@ -47,12 +47,14 @@ function createMockSupabase(getStateFn, recordRpcFn, mockRpcResults) {
         }
       })
     }),
-    rpc: async (fnName, params) => {
+        rpc: async (fnName, params) => {
       recordRpcFn(fnName, params);
       if (mockRpcResults && mockRpcResults[fnName]) {
         return mockRpcResults[fnName]();
       }
-      return { data: [{ updated_count: params.p_ids.length }], error: null };
+      const c = params.p_ids ? params.p_ids.length : 0;
+      if (fnName === 'claim_alarm_group') return { data: [{ claimed_count: c }], error: null };
+      return { data: [{ updated_count: c }], error: null };
     }
   };
 }
@@ -254,4 +256,6 @@ async function run() {
 }
 
 run();
+
+
 
